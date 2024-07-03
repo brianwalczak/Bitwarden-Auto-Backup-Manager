@@ -1,0 +1,10 @@
+{
+  "latestVersion": "1.0.1",
+  "requireUpdate": false,
+  "downloadUrl": "enter_exe_file_here",
+  "releaseNotes": [
+    "Added \"Backup Now\" option",
+    "Created vault restore process",
+    "Added extra delay for vault syncing"
+  ]
+}
