@@ -1,0 +1,34 @@
+{
+  "name": "bitwarden-auto-backup-manager",
+  "productName": "Bitwarden Auto-Backup Manager",
+  "description": "A robust application that creates local, encrypted auto-backups for your Bitwarden vault.",
+  "author": "Brian Walczak",
+  "version": "1.0.1",
+  "main": "index.js",
+  "scripts": {
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.brianwalczak.bitwarden-auto-backup-manager",
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": false,
+      "perMachine": false,
+      "runAfterFinish": true,
+      "installerIcon": "icon.ico"
+    }
+  },
+  "dependencies": {
+    "electron-prompt": "^1.7.0",
+    "jquery": "^3.7.1",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "electron": "^31.1.0",
+    "electron-builder": "^24.4.0"
+  }
+}

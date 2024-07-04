@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Bitwarden Auto-Backup Manager</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+		<style>
+			html, body {
+				margin: 0;
+				padding: 0;
+				width: 100%;
+				height: 100%;
+			}
+
+			body {
+				padding: 30px;
+				color: black;
+				position: relative;
+			}
+		
+			#settingsIcon {
+				position: absolute;
+				right: 30px;
+				top: 20px;
+				font-size: 40px;
+				cursor: pointer;
+			}
+			
+			.textbox {
+				border: 2px solid lightgrey;
+				font-family: sans-serif;
+				font-size: 15px;
+				height: 30px;
+				text-align: center;
+				border-radius: 5px;
+			}
+			
+			.textbox {
+				outline: none;
+				border: 2px solid darkgrey;
+			}
+
+			#version {
+				position: absolute;
+				width: 100%;
+				bottom: 5px;
+				left: 50%;
+				transform: translateX(-50%);
+				color: black;
+			}
+		</style>
+	</head>	
+	<body><center>
+		<i class="fa fa-gear" id="settingsIcon" onclick="toggleSettings()"></i>
+		
+		<div id="main" style="display: block; width: 100%; height: 100%;">
+			<h1 class="h3 fw-semibold" id="name">Bitwarden Automatic Backup</h1>
+			<p class="fw-normal">Enable automatic backups for your Bitwarden Vault to stay protected.</p>
+			
+			<p style="color: red; margin-top: 10px;" id="status">Please configure your settings before you continue.</p>
+			
+			<div id="options" style="visibility: hidden;">
+				<button class="btn btn-success fw-semibold" id="enable">Enable</button>
+				<button class="btn btn-danger fw-semibold" id="disable">Disable</button>
+				<button class="btn btn-success fw-semibold" style="background-color: #175ddc;" onclick="backupNow()">Backup Now</button>
+			</div>
+			<small id="version"></small>
+
+		</div>
+		
+		<div id="settings" style="display: none; width: 100%; height: 100%;">
+			<h1 class="h3 fw-semibold">Settings</h1><br>
+			
+			<p class="fw-semibold" style="margin-bottom: 5px;">Perform backup every:</p>
+			<select id="occurrence" class="textbox" style="width: 70%;">
+				<option value="day">Day</option>
+				<option value="week">Week</option>
+				<option value="month">Month</option>
+			</select>
+			
+			<br><br>
+			
+			<p class="fw-semibold" style="margin-bottom: 5px;">Folder for backup copies:</p>
+			<input type="text" id="folder" class="textbox" style="width: 70%" placeholder='C:/Users/username/Bitwarden Backups'></input>
+			
+			<br><br>
+
+			<p class="fw-semibold" style="margin-bottom: 5px;">Number of backups to keep</p>
+			<input type="number" id="keeping" class="textbox" style="width: 70%" placeholder='50'></input>
+			
+			<br><br>
+			<button class="btn btn-success fw-semibold" onclick="saveSettings()">Save Settings</button>
+
+			<br><br><br><br>
+			<button class="btn btn-success fw-semibold" style="background-color: #175ddc;" onclick="restoreBackup()">Restore from Backup</button>
+		</div>
+	</center></body>
+
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script>
+		// Function to update the warning/status text
+		function updateWarning(text, severity) {
+			if(!text) $("#status").css('display', 'none');
+
+			$("#status").css('display', 'inline-block');
+			$("#status").css('color', severity || 'black');
+			$("#status").html(text);
+			return $("#status");
+		}
+
+		// Send status of true when enable is clicked
+		$('#enable').on('click', () => {
+			updateWarning('Enable automatic updates for your Bitwarden vault...', '#175ddc');
+			ipcRenderer.send('status', true);
+		});
+
+		// Send status of false when disable is clicked
+		$('#disable').on('click', () => {
+			ipcRenderer.send('status', false);
+		});
+
+		// Update textboxes in settings to the current configuration
+		ipcRenderer.on('settings', (event, data) => {
+			try {
+				$("#occurrence").val(data.occurrence);
+				$("#folder").val(data.folder);
+				$("#keeping").val(data.keeping);
+
+				updateWarning(null);
+				$("#options").css('visibility', 'visible');
+			} catch(error) {
+				// Looks like something's wrong with their settings
+			}
+		});
+
+		// Update version data when received (if)
+		ipcRenderer.on('version', (event, res) => {
+			try {
+				if(res.upToDate) {
+					$("#version").html(`Your software is currently up-to-date with v${res.currentVersion}.`);
+				} else {
+					$("#version").html(`Your version is out-of-date with v${res.currentVersion}. <u style='cursor: pointer;' onclick='shell.openExternal("${res.downloadUrl}")'>Click here to update.</u>`);
+				}
+			} catch(error) {
+				$("#version").html(`We we're unable to check for updates. You're version may be outdated.`);
+			}
+		});
+		
+		// Handler for when you receive an update on the backup status
+		ipcRenderer.on('status', (event, data) => {
+			// When backups are enabled, print the next upcoming backup date and time.
+			if(data && data.isEnabled) {
+				const nextDateFormatted = new Date(data.nextDate).toLocaleString('en-US', {
+					month: 'long',
+					day: 'numeric',
+					year: 'numeric',
+					hour: 'numeric',
+					minute: '2-digit',
+					hour12: true
+				});
+				
+				$('#disable').css('display', 'inline-block');
+				$('#enable').css('display', 'none');
+				updateWarning(`Automatic backups are currently enabled for your vault.<br><b style='color: #175ddc;'>Your next backup will occur in ${nextDateFormatted}.</b>`, 'green');
+			} else {
+				$('#enable').css('display', 'inline-block');
+				$('#disable').css('display', 'none');
+				updateWarning('Automatic backups are currently disabled for your vault.', 'red');
+			}
+		});
+		
+		// Simple function to toggle the settings div
+		function toggleSettings() {
+			const settingsBtn = $("#settingsIcon");
+			const settingsDiv = $("#settings");
+			const mainDiv = $("#main");
+			
+			if(settingsDiv.css('display') == "none") {
+				settingsDiv.css('display', 'inline-block');
+				mainDiv.css('display', 'none');
+				
+				settingsBtn.removeClass("fa-gear");
+				settingsBtn.addClass("fa-close");
+				settingsBtn.css('color', 'red');
+			} else {
+				settingsDiv.css('display', 'none');
+				mainDiv.css('display', 'inline-block');
+				
+				settingsBtn.removeClass("fa-close");
+				settingsBtn.addClass("fa-gear");
+				settingsBtn.css('color', 'black');
+			}
+		}
+		
+		// Function that sends the updated settings to the server for handling
+		function saveSettings() {
+			const occurrence = $("#occurrence").val();
+			const folder = $("#folder").val();
+			const keeping = $("#keeping").val();
+
+			ipcRenderer.send('settings', { occurrence, folder, keeping });
+			updateWarning(null);
+			$("#options").css('visibility', 'visible');
+
+			alert('Your settings have been successfully saved.');
+			window.location.reload();
+		}
+
+		// Function to export their decrypted vault from an existing backup
+		function restoreBackup() {
+			// Create an input element
+			var input = document.createElement('input');
+			input.type = 'file';
+			input.accept = '.json';
+			
+			// Event listener for when a file is selected
+			input.onchange = function(event) {
+				var file = event.target.files[0]; // Get the selected file
+				if (!file) return; // Return if no file selected
+				
+				var reader = new FileReader();
+				reader.onload = function(event) {
+					var content = JSON.parse(event.target.result); // Extract text content of the file
+					var confirmation = confirm("Are you sure you'd like to continue? This will overwrite your offline vault on the Bitwarden Desktop App (don't worry, this won't destroy your current vault).");
+
+					if(!confirmation) return;
+					ipcRenderer.send('restore', content);
+				};
+
+				reader.readAsText(file); // Read the file as text
+			};
+
+			input.click();
+		}
+
+		// Function to create a new backup now
+		function backupNow() {
+			var confirmation = confirm("Are you sure you'd like to create a new backup? It will be saved in your saved folder.");
+			if(!confirmation) return;
+
+			return ipcRenderer.send('backup');
+		}
+	</script>
+</html> 
