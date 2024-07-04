@@ -1,5 +1,5 @@
 # Bitwarden Auto-Backup Manager
-A robust application that creates local, encrypted auto-backups for your Bitwarden vault.
+A robust application that creates local, encrypted auto-backups for your Bitwarden vault without using your master password.
 
 ## Features
 - Create encrypted backups of your Bitwarden Vault with ease, ensuring that your personal information is safe.
