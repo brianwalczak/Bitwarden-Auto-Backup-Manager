@@ -10,7 +10,7 @@ A robust application that creates local, encrypted auto-backups for your Bitward
 ## Requirements
 Before installing the Bitwarden Auto-Backup Manager, you need to have the Bitwarden Desktop app installed locally on your device. You must ensure that the Bitwarden Desktop app is **not** installed through the Microsoft Store or the App Store.
 
-If you have it downloaded through the Microsoft Store, click <a href='https://vault.bitwarden.com/download/?app=desktop&platform=windows'>here</a> to download the latest installer for the Bitwarden Desktop app. At this time, we currently only support Windows operating systems due to the background restrictions posed by macOS.
+If you have it downloaded through the Microsoft Store, you'll need to uninstall it, then click <a href='https://vault.bitwarden.com/download/?app=desktop&platform=windows'>here</a> to download the latest installer for the Bitwarden Desktop app. At this time, we currently only support Windows operating systems due to the background restrictions posed by macOS.
 
 Once you install the Bitwarden Desktop app, it's crucial that you login to your vault before you install the Bitwarden Auto-Backup Manager. This step is important, because it allows us to communicate with the Bitwarden Desktop app and sync your vault automatically, all without the need of entering your master password.
 
