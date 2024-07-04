@@ -5,9 +5,9 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const appPath = 'C:/Program Files/Bitwarden/Bitwarden.exe';
-const dataPath = path.join(os.homedir(), 'AppData/Roaming/Bitwarden', 'data.json');
-const settingsPath = path.join(app.getPath('userData'), 'settings.json');
+let appPath = 'C:/Program Files/Bitwarden/Bitwarden.exe';
+let dataPath = path.join(os.homedir(), 'AppData/Roaming/Bitwarden', 'data.json');
+let settingsPath = path.join(app.getPath('userData'), 'settings.json');
 
 // The code below is used so that there's never more than one process of the app running
 // It also ensures that, at the same time, it's always running, whether in the foreground or as a background process
@@ -458,6 +458,33 @@ async function setStatus(status) {
     }
 }
 
+// Function to check if the user has the Bitwarden Desktop app and proper data installed.
+async function checkRequirements() {
+	const isWindows = process.platform === 'win32';
+	const bitwardenApp = await fileExists(appPath);
+	const bitwardenData = await fileExists(dataPath);
+
+	if(!isWindows) {
+		dialog.showErrorBox('Unsupported OS', `Unfortunately, it looks like your operating system is unsupported. The app needs to quit.`);
+		process.exit();
+	}
+
+	if(!bitwardenApp) {
+		appPath = path.join(os.homedir(), 'AppData/Local/Programs/Bitwarden', 'Bitwarden.exe'); // They may have it installed for their user only
+		const localBitwardenApp = await fileExists(appPath); // Re-check with the new path
+		
+		if(!localBitwardenApp) {
+			dialog.showErrorBox('Requirements Error', `The Bitwarden Desktop app is required to create auto-backups, but it's not installed on your device. Please visit www.bitwarden.com to install it on your computer.`);
+			process.exit();
+		}
+	}
+
+	if(!bitwardenData) {
+		dialog.showErrorBox('Unauthorized', `We are unable to locate the neccessary app data for the Bitwarden Desktop app. Please ensure that it is installed, and you have previously synced your vault.`);
+		process.exit();
+	}
+}
+
 app.on('window-all-closed', () => {
 	// Prevent the app from quitting on all windows closed, leave
 })
@@ -471,24 +498,7 @@ app.on("ready", async () => {
     });
 
 	// Simple check if the user has the Bitwarden Desktop app and proper data installed.
-	const isWindows = process.platform === 'win32';
-	const bitwardenApp = await fileExists(appPath);
-	const bitwardenData = await fileExists(dataPath);
-
-	if(!isWindows) {
-		dialog.showErrorBox('Unsupported OS', `Unfortunately, it looks like your operating system is unsupported. The app needs to quit.`);
-		process.exit();
-	}
-
-	if(!bitwardenApp) {
-		dialog.showErrorBox('Requirements Error', `The Bitwarden Desktop app is required to create auto-backups, but it's not installed on your device. Please visit www.bitwarden.com to install it on your computer.`);
-		process.exit();
-	}
-
-	if(!bitwardenData) {
-		dialog.showErrorBox('Unauthorized', `We are unable to locate the neccessary app data for the Bitwarden Desktop app. Please ensure that it is installed, and you have previously synced your vault.`);
-		process.exit();
-	}
+	await checkRequirements();
 });
 
 // Create a window when the app is activated (if one doesn't exist)
