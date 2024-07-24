@@ -7,6 +7,6 @@
     "Imported Bitwarden client library",
     "Added \"Backup Now\" option",
     "Created vault restore process",
-    "Updated version checker",
+    "Updated version checker"
   ]
 }
