@@ -1,0 +1,1 @@
+{"version":3,"file":"account-factory.js","sourceRoot":"","sources":["../../../../../../../libs/common/src/platform/factories/account-factory.ts"],"names":[],"mappings":";;;AAEA,MAAa,cAAc;IAGzB,YAAY,kBAA+C;QACzD,IAAI,CAAC,kBAAkB,GAAG,kBAAkB,CAAC;IAC/C,CAAC;IAED,MAAM,CAAC,IAAgB;QACrB,OAAO,IAAI,IAAI,CAAC,kBAAkB,CAAC,IAAI,CAAC,CAAC;IAC3C,CAAC;CACF;AAVD,wCAUC"}

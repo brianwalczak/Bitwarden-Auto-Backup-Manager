@@ -1,13 +1,16 @@
 const { app, BrowserWindow, Menu, Notification, ipcMain, shell, dialog } = require('electron');
 const { exec, spawn } = require('child_process');
 const prompt = require('electron-prompt');
+const keytar = require('keytar');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const appPath = 'C:/Program Files/Bitwarden/Bitwarden.exe';
-const dataPath = path.join(os.homedir(), 'AppData/Roaming/Bitwarden', 'data.json');
-const settingsPath = path.join(app.getPath('userData'), 'settings.json');
+const { exportVault } = require('./vault/export'); // Exports a user vault from their Bitwarden Desktop configuration
+const { restoreBackup } = require('./vault/restore'); // Restores a user vault from their KDF iteration and master password (w/ PBKDF2 only)
+
+let dataPath; // User path to Bitwarden Desktop data.json file (will be defined later)
+let settingsPath = path.join(app.getPath('userData'), 'settings.json'); // User app configuration file
 
 // The code below is used so that there's never more than one process of the app running
 // It also ensures that, at the same time, it's always running, whether in the foreground or as a background process
@@ -89,6 +92,21 @@ async function checkForUpdates(window) {
 	}
 }
 
+// A function that decrypts the file provided with a master password
+async function decryptFile(backup, masterPassword) {
+    try {
+        let data = await fs.promises.readFile(settingsPath, 'utf8'); // Read the settings file (necessary to get their configuration)
+        let backupFileName = `Backup Restore (${Date.now()}).json`;
+	    data = JSON.parse(data);
+
+        const unencryptedBackup = await restoreBackup(backup, masterPassword);
+        await fs.promises.writeFile(path.join(data.folder, backupFileName), JSON.stringify(unencryptedBackup, null, "  "), 'utf8');
+        return { success: true, location: path.join(data.folder, backupFileName) };
+    } catch(error) {
+        return { success: false, reason: error.toString() };
+    }
+}
+
 async function createWindow () {
 	win = new BrowserWindow({
     	width: 750,
@@ -103,7 +121,6 @@ async function createWindow () {
   	})
 
   	win.loadFile('index.html'); // Load index.html file in window
-	checkForUpdates(win); // Check for updates to inform user
   	// win.webContents.openDevTools(); // Open up DevTools (for development purposes haha)
 
 	if (process.platform === 'win32') {
@@ -161,6 +178,8 @@ async function createWindow () {
 
 	// Runs function when the app has loaded/refreshed
   	win.webContents.on('did-finish-load', async () => {
+        checkForUpdates(win); // Check for updates to inform user
+
 		// Send the user's settings data to index.html
     	fs.readFile(settingsPath, 'utf8', async (error, data) => {
 			// The user does not have any settings, create a default settings file
@@ -218,27 +237,25 @@ async function createWindow () {
 
 	// When the user attempts to restore from a previous backup in index.html
 	ipcMain.on('restore', async (event, backupData) => {
-		
-		dialog.showMessageBox({
-			type: 'warning',
-			title: 'WiFi Warning',
-			message: `WiFi Warning`,
-			detail: `Before you continue exporting your vault, please disable your WiFi in settings. This is a very important step, because it will allow you to view your offline vault. Once you disable your WiFi connection, please click OK.`,
-			buttons: ['OK', 'Cancel'],
-			defaultId: 0,
-			cancelId: 1
-		}).then(async (response) => {
-			if (response.response !== 0) return dialog.showErrorBox('Restore Aborted', `You have aborted the restore process, and it has been cancelled.`);
-
-			await killProcesses('Bitwarden'); // Kill all Bitwarden Desktop processes
-			await fs.promises.writeFile(dataPath, JSON.stringify(backupData, null, 2)); // Overwrite old offline vault with backup
-			await launchProcess(appPath, false); // Launch Bitwarden Desktop app
-
+		prompt({
+			title: 'Restore from Backup',
+			label: 'Master Password',
+			type: 'input',
+			inputAttrs: {
+				type: 'password'
+			},
+		}).then(async (password) => {
+			if (password === null) return dialog.showErrorBox('Restore Aborted', `You have aborted the restore process, and it has been cancelled.`);
+			
+            const decryption = await decryptFile(backupData, password);
+            if(!decryption.success) return dialog.showErrorBox('Restore Failed', `An error occurred when decrypting your file. Please ensure that you've entered the correct master password and your backup file isn't corrupted.\n\nError: ` + decryption.reason || 'Unknown');
+            
+            shell.showItemInFolder(decryption.location);
 			dialog.showMessageBox({
 				type: 'info',
 				title: 'Restore Successful',
 				message: `Restore Successful`,
-				detail: `Your Bitwarden vault export was successful. To proceed, please enter your master password in the Bitwarden Desktop app and select File > Export vault to save it locally. It's important not to enable WiFi on your computer during this process, as it could exit offline mode in the Bitwarden Desktop app. You can safely turn your WiFi back on after completing the vault export.`,
+				detail: `Your Bitwarden vault export was successful. Remember to keep the file safe, because it contains all of your decrypted vault data.`,
 				buttons: ['OK']
 			}).then(() => {
 				win.reload();
@@ -275,82 +292,6 @@ function fileExists(filePath) {
                 resolve(true); // File exists
             }
         });
-    });
-}
-
-// Function to wait until a specific file receives a new modification
-// This is used to check if the Bitwarden vault syncs successfully
-async function waitForUpdate(filePath) {
-    let lastModifiedTime = await getLastModifiedTime(filePath);
-
-    while (true) {
-        await sleep(1000);
-        const currentModifiedTime = await getLastModifiedTime(filePath);
-
-        if (currentModifiedTime !== lastModifiedTime) {
-            return;
-        }
-
-        lastModifiedTime = currentModifiedTime;
-    }
-}
-
-// Function to check the last modified date on a file
-async function getLastModifiedTime(filePath) {
-    try {
-        const stats = await fs.promises.stat(filePath);
-        return stats.mtimeMs; // Get last modified time in milliseconds
-    } catch (err) {
-        return null; // An error occurred, most likely a non-existent file
-    }
-}
-
-// Simple function to delay before continuing with an asynchronous function
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// Function to kill a specific application
-async function killProcesses(processName) {
-    return new Promise((resolve, reject) => {
-        exec(`taskkill /f /im ${processName}.exe`, (err, stdout, stderr) => {
-            resolve();
-        });
-    });
-}
-
-// Function to end one specific process
-async function killProcess(child) {
-    return new Promise((resolve, reject) => {
-		const pid = child.pid;
-        const kill = spawn('taskkill', ['/pid', pid, '/f', '/t']);
-
-        kill.on('close', (code) => {
-            resolve();
-        });
-    });
-}
-
-// Function to launch an application
-async function launchProcess(path, background = true) {
-    return new Promise((resolve, reject) => {
-        let child;
-        if (!background) {
-            child = spawn(path, [], {
-                stdio: 'inherit'
-            });
-        } else {
-            child = spawn(path, [], {
-                detached: true,
-                stdio: 'ignore',
-                windowsHide: true
-            });
-
-            child.unref();
-        }
-
-        // Resolve with the child process object
-        resolve(child);
     });
 }
 
@@ -409,12 +350,7 @@ async function checkOldBackups(data) {
 
 // Function that will will grab the synced vault file and copy it to the users specified backup folder
 async function performBackup(data) {
-	// Complete the backup here
-	await killProcesses('Bitwarden'); // Kill all processes of BitWarden
-    const child = await launchProcess(appPath); // Launch a new process of BitWarden
-    await waitForUpdate(dataPath); // Wait for synced vault
-	await sleep(3000); // Wait for 3 seconds to sync changes
-    await killProcess(child); // Kill specific process of BitWarden after creating update
+	const jsonDoc = await exportVault(dataPath);
 
 	// Get the current date to rename file
 	const formattedDate = new Date().toLocaleDateString('en-US', {
@@ -425,7 +361,7 @@ async function performBackup(data) {
 	const backupFileName = `${formattedDate} (${Date.now()}).json`;
 
 	await fs.promises.mkdir(data.folder, { recursive: true }); // Create backup directory if doesn't exist
-	await fs.promises.copyFile(dataPath, path.join(data.folder, backupFileName)); // Copy the file to the user's selected backup location
+	await fs.promises.writeFile(path.join(data.folder, backupFileName), JSON.stringify(jsonDoc, null, "  "), 'utf8'); // Copy the JSON to the user's selected backup location
 	checkOldBackups(data); // Check all old backups to see if the configuration by the user exceeded
 
 	return backupFileName;
@@ -458,6 +394,31 @@ async function setStatus(status) {
     }
 }
 
+// Function to check if the user has the Bitwarden Desktop app and proper data installed.
+async function checkRequirements() {
+    const bitwardenData = {
+        standard: path.join(os.homedir(), 'AppData/Roaming/Bitwarden', 'data.json'),
+        microsoft: path.join(os.homedir(), 'AppData/Local/Packages/8bitSolutionsLLC.bitwardendesktop_h4e712dmw3xyy/LocalCache/Roaming/Bitwarden', 'data.json')
+    }
+
+    const isStandard = await fileExists(bitwardenData.standard); // Standard app installation (bw desktop)
+    const isMicrosoft = await fileExists(bitwardenData.microsoft); // Microsoft Store app installation (bw desktop)
+    
+	if(process.platform !== 'win32') { // Check operating system (in case somebody re-deploys)
+		dialog.showErrorBox('Unsupported OS', `Unfortunately, it looks like your operating system is unsupported. The app needs to quit.`);
+		process.exit();
+	}
+
+	if(!isStandard && !isMicrosoft) {
+		dialog.showErrorBox('Unauthorized', `We are unable to locate the neccessary app data for the Bitwarden Desktop app. Please ensure that it is installed, and you have previously synced your vault.`);
+		process.exit();
+    } else if(isStandard) {
+        dataPath = bitwardenData.standard;
+    } else if(isMicrosoft) {
+        dataPath = bitwardenData.microsoft;
+	}
+}
+
 app.on('window-all-closed', () => {
 	// Prevent the app from quitting on all windows closed, leave
 })
@@ -471,24 +432,7 @@ app.on("ready", async () => {
     });
 
 	// Simple check if the user has the Bitwarden Desktop app and proper data installed.
-	const isWindows = process.platform === 'win32';
-	const bitwardenApp = await fileExists(appPath);
-	const bitwardenData = await fileExists(dataPath);
-
-	if(!isWindows) {
-		dialog.showErrorBox('Unsupported OS', `Unfortunately, it looks like your operating system is unsupported. The app needs to quit.`);
-		process.exit();
-	}
-
-	if(!bitwardenApp) {
-		dialog.showErrorBox('Requirements Error', `The Bitwarden Desktop app is required to create auto-backups, but it's not installed on your device. Please visit www.bitwarden.com to install it on your computer.`);
-		process.exit();
-	}
-
-	if(!bitwardenData) {
-		dialog.showErrorBox('Unauthorized', `We are unable to locate the neccessary app data for the Bitwarden Desktop app. Please ensure that it is installed, and you have previously synced your vault.`);
-		process.exit();
-	}
+	await checkRequirements();
 });
 
 // Create a window when the app is activated (if one doesn't exist)

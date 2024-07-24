@@ -1,0 +1,1 @@
+{"version":3,"file":"global-state-factory.js","sourceRoot":"","sources":["../../../../../../../libs/common/src/platform/factories/global-state-factory.ts"],"names":[],"mappings":";;;AAEA,MAAa,kBAAkB;IAG7B,YAAY,sBAAmD;QAC7D,IAAI,CAAC,sBAAsB,GAAG,sBAAsB,CAAC;IACvD,CAAC;IAED,MAAM,CAAC,IAAiB;QACtB,OAAO,IAAI,IAAI,CAAC,sBAAsB,CAAC,IAAI,CAAC,CAAC;IAC/C,CAAC;CACF;AAVD,gDAUC"}

@@ -1,0 +1,1 @@
+{"version":3,"file":"verify-bank-account.request.js","sourceRoot":"","sources":["../../../../../../../../libs/common/src/billing/models/request/verify-bank-account.request.ts"],"names":[],"mappings":";;;AAAA,MAAa,wBAAwB;IAInC,YAAY,OAAe,EAAE,OAAe;QAC1C,IAAI,CAAC,OAAO,GAAG,OAAO,CAAC;QACvB,IAAI,CAAC,OAAO,GAAG,OAAO,CAAC;IACzB,CAAC;CACF;AARD,4DAQC"}

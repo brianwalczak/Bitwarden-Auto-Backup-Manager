@@ -222,7 +222,7 @@
 				var reader = new FileReader();
 				reader.onload = function(event) {
 					var content = JSON.parse(event.target.result); // Extract text content of the file
-					var confirmation = confirm("Are you sure you'd like to continue? This will overwrite your offline vault on the Bitwarden Desktop App (don't worry, this won't destroy your current vault).");
+					var confirmation = confirm("Are you sure you'd like to continue? You'll need to enter the master password that was associated with your Bitwarden account at the time of the backup. This password is never stored, and is only used to decrypt your backup.");
 
 					if(!confirmation) return;
 					ipcRenderer.send('restore', content);

@@ -1,0 +1,1 @@
+{"version":3,"file":"provider-organization-create.request.js","sourceRoot":"","sources":["../../../../../../../../../libs/common/src/admin-console/models/request/provider/provider-organization-create.request.ts"],"names":[],"mappings":";;;AAEA,MAAa,iCAAiC;IAC5C,YACS,gBAAwB,EACxB,yBAAoD;QADpD,qBAAgB,GAAhB,gBAAgB,CAAQ;QACxB,8BAAyB,GAAzB,yBAAyB,CAA2B;IAC1D,CAAC;CACL;AALD,8EAKC"}
