@@ -1,10 +1,11 @@
 {
-  "latestVersion": "1.0.1",
-  "requireUpdate": false,
+  "latestVersion": "3.0.0",
+  "requireUpdate": true,
   "downloadUrl": "https://github.com/BrianWalczak/Bitwarden-Auto-Backup-Manager",
   "releaseNotes": [
+    "Updated to utilize Bitwarden API",
+    "Imported Bitwarden client library",
     "Added \"Backup Now\" option",
     "Created vault restore process",
-    "Added extra delay for vault syncing"
   ]
 }
