@@ -4,7 +4,7 @@
 # Bitwarden Auto-Backup Manager (Beta)
 A robust application that creates local, encrypted auto-backups for your Bitwarden vault without using your master password.
 
-> [!WARNING]
+> Warning
 > **This app is currently in its beta state as we collect more information. I am not responsible for any issues that may occur during use. If you find a bug, please report it <a href='https://github.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/issues'>here</a> as I make improvements :)**
 
 ## Features
@@ -18,5 +18,5 @@ Before installing the Bitwarden Auto-Backup Manager, you need to have the Bitwar
 
 Once you install the Bitwarden Desktop app, it's crucial that you login to your vault before you install the Bitwarden Auto-Backup Manager. This step is important, because it allows us to get the necessary information from the Bitwarden Desktop app to sync your vault directly through the Bitwarden API, all without the need of entering your master password.
 
-> [!CAUTION]
+> Caution
 > **This project currently supports personal Bitwarden accounts, utilizing the PBKDF2 KDF algorithm (Argon2id is NOT supported). You can [click here](https://vault.bitwarden.com/#/settings/security/security-keys) to view and update your current KDF configuration.**
