@@ -21,7 +21,7 @@ Once you install the Bitwarden Desktop app, it's crucial that you login to your 
 ## Installation
 To install the Bitwarden Auto-Backup Manager, simply visit our <a href='https://github.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/releases'>releases page</a> and download the Windows executable. Then, launch the app and configure your settings to enable automatic backups on your device.
 
-We communicate directly with the Bitwarden API to get the latest update of your encrypted Bitwarden vault and save it as a backup with your Bitwarden Desktop configurations.
+We communicate directly with the Bitwarden API to get the latest update of your encrypted Bitwarden vault and save it as a backup with your Bitwarden Desktop configurations (using the active account on the Bitwarden Desktop app).
 
 ## Credits/Authors
 This project was made possible by utilizing the following dependencies:
