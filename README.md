@@ -52,7 +52,7 @@ The answer is, nobody knows! At the moment, there is no way to create automatic 
 You don't need to! When launching the Bitwarden Auto-Backup Manager, we will inform you of any critical updates that have been released. Additionally, you can check if you're up-to-date by looking near the bottom of the window.
 
 ### I found a bug or would like to submit feedback. How can I do so?
-That's awesome to hear! You can submit your feedback or any bugs that you find, on our <a href='https://github.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/reports'>reports page</a>. These are checked very frequently, and we encourage you to find bugs :)
+That's awesome to hear! You can submit your feedback or any bugs that you find, on our <a href='https://github.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/issues'>issues page</a>. These are checked very frequently, and we encourage you to find bugs :)
 
 ### I love this project, how can I support its maintenance?
-I'm glad you find this project useful! If you'd like to support this project and its development, you can send me a donation <a href='https://buymeacoffee.com/brian'>here</a> :)
+I'm glad you find this project useful! If you'd like to support this project and its development, you can send me a donation <a href='https://buymeacoffee.com/briann'>here</a> :)
