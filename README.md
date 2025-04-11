@@ -55,4 +55,4 @@ You don't need to! When launching the Bitwarden Auto-Backup Manager, we will inf
 That's awesome to hear! You can submit your feedback or any bugs that you find, on our <a href='https://github.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/issues'>issues page</a>. These are checked very frequently, and we encourage you to find bugs :)
 
 ### I love this project, how can I support its maintenance?
-I'm glad you find this project useful! If you'd like to support this project and its development, you can send me a donation <a href='https://buymeacoffee.com/briann'>here</a> :)
+I'm glad you find this project useful! If you'd like to support this project and its development, you can send me a donation <a href='https://ko-fi.com/brianwalczak'>here</a> :)
