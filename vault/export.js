@@ -1,3 +1,6 @@
+// IMPLEMENTATION: getEncryptedExport from https://github.com/bitwarden/clients -> ./libs/tools/export/vault-export/vault-export-core/src/services/individual-vault-export.service.ts#L203
+
+
 const keytar = require('keytar');
 const fs = require('fs');
 
