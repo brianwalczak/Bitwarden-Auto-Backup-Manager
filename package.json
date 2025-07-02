@@ -12,7 +12,8 @@
   "build": {
     "appId": "com.brianwalczak.bitwarden-auto-backup-manager",
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "static/icon.ico"
     },
     "nsis": {
       "oneClick": false,
