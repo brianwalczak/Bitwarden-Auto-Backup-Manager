@@ -1,14 +1,15 @@
 # Bitwarden Auto-Backup Manager (Beta)
-A robust application that creates local, encrypted auto-backups for your Bitwarden vault without using your master password.
+A robust application that creates local, encrypted auto-backups for your Bitwarden vaults without using your master password.
 
 > [!WARNING]
 > **This app is currently in its beta state as we collect more information. I am not responsible for any issues that may occur during use. If you find a bug, please report it <a href='https://github.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/issues'>here</a> as I make improvements :)**
 
 ## Features
-- Create encrypted backups of your Bitwarden Vault with ease, ensuring that your personal information is safe.
-- Enable encrypted automatic backups to occur every day, week, or month to keep your vault saved.
-- Restore your Bitwarden Vault from any backup within seconds, helping you access your information freely.
+- Create encrypted backups of your Bitwarden vaults with ease, ensuring that your personal information is safe.
+- Enable encrypted automatic backups to occur every day, week, or month to keep your vaults saved.
+- Restore your Bitwarden vault from any backup within seconds, helping you access your information freely.
 - Your master password is never required to create a new backup, and each backup is automatically created from utilizing the Bitwarden Desktop app (for account authentication **only**) and direct Bitwarden API.
+- Manage and back up **multiple Bitwarden accounts** from a single interface, making it easy to keep all your vaults securely backed up in one place.
 
 ## Requirements
 Before installing the Bitwarden Auto-Backup Manager, you need to have the Bitwarden Desktop app installed locally on your device. If you don't already, click <a href='https://vault.bitwarden.com/download/?app=desktop&platform=windows'>here</a> to download the latest installer for the Bitwarden Desktop app.
@@ -35,6 +36,9 @@ This project was made possible by utilizing the following dependencies:
 ## FAQ
 ### Why do I need to install the Bitwarden Desktop App?
 We use the Bitwarden Desktop app to fetch your account configuration when creating a backup. This is crucial, because it's what allows you to decrypt your data at any given time. Despite this, we communicate directly with the direct Bitwarden API to sync your vault and generate an access token.
+
+### Can I manage multiple Bitwarden accounts?
+Yes! You can now enable automatic backups and create individual backups for multiple Bitwarden accounts directly within the app. Just make sure each account is added through Bitwarden Desktop before launching the app.
 
 ### Will I receive automatic backups if my computer isn't turned on?
 No, you will **not** receive backups if your computer isn't turned on. If your device isn't turned on, we won't be able to run in the background and ensure your vault is backed up.

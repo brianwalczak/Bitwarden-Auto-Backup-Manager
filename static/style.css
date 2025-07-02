@@ -1,0 +1,254 @@
+@font-face {
+    font-family: 'Roboto';
+    src: url('./fonts/Roboto.ttf') format('truetype');
+    font-weight: 100 900;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #f3f6f9;
+    font-family: 'Roboto', "Helvetica Neue", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    overflow: hidden;
+}
+
+body {
+    display: flex;
+    height: 100vh;
+}
+
+/* Tab / Navigation Styling */
+.navigation {
+    background-color: rgba(23, 93, 220, 1);
+    border-right: 1px solid #ddd;
+
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.navigation .nav-item {
+    flex: 1 1 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    padding: 15px;
+    background-color: rgba(23, 93, 220, 1);
+    transition: background-color 0.2s ease;
+}
+
+.navigation .nav-item svg {
+    width: 22px;
+    height: 22px;
+    color: white;
+    stroke-width: 2.5;
+}
+
+.navigation .nav-item.active {
+    background-color: rgba(18, 74, 176, 1);
+}
+
+.navigation .nav-item:not(.active):hover {
+    background-color: rgba(21, 83, 200, 1);
+}
+
+.page {
+    padding: 30px;
+    flex-grow: 1;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    box-sizing: border-box;
+    position: relative;
+    text-align: center;
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+/* Form Styling */
+.form {
+    border: 1px solid rgb(168, 179, 200);
+    border-radius: 10px;
+    background-color: white;
+    align-items: center;
+    margin: 0 auto;
+    padding: 32px;
+}
+
+/* Button Styling */
+button {
+    border-radius: 100px;
+    border: none;
+    padding: 10px 16px !important;
+    font-size: 14px;
+    width: auto;
+    white-space: nowrap;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    box-sizing: border-box;
+    border: 2px solid transparent;
+}
+
+button.primary {
+    border-color: transparent;
+    background-color: rgba(23, 93, 220, 1);
+    color: white;
+}
+
+button.secondary {
+    background-color: white;
+    color: rgba(23, 93, 220, 1);
+    border: 2px solid rgba(23, 93, 220, 1);
+}
+
+button.primary:hover {
+    background-color: rgba(21, 83, 200, 1);
+}
+
+button.secondary:hover {
+    background-color: rgba(23, 93, 220, 1);
+    color: white;
+}
+
+/* Dropdown / Input Styling */
+.dropdown-container, .input-container {
+    position: relative;
+    margin-bottom: 24px;
+}
+
+.dropdown-container .label, .input-container .label {
+    position: absolute;
+    top: -10px;
+    left: 12px;
+    background: white;
+    padding: 0 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #666;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.dropdown, .input {
+    position: relative;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+}
+
+.input input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    margin: none;
+    background: transparent;
+    box-sizing: border-box;
+}
+
+.input input:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.dropdown:hover, .input:hover {
+    border-color: #888;
+}
+
+.dropdown .button, .input input {
+    padding: 12px;
+    font-size: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dropdown .arrow {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+}
+
+.dropdown.open .arrow {
+    transform: rotate(180deg);
+}
+
+.dropdown .select {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: white;
+    z-index: 10;
+    display: none;
+    margin-top: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.dropdown.open .select {
+    display: block;
+}
+
+.dropdown .select div {
+    text-align: left;
+    padding: 10px 12px;
+    padding-left: 20px;
+    cursor: pointer;
+}
+
+.dropdown .select div:hover {
+    background: #f0f0f0;
+}
+
+/* Page Styling */
+.results {
+    overflow-y: auto;
+    border: 1px solid rgb(168, 179, 200);
+    background-color: white;
+    border-radius: 10px;
+    padding: 0px 10px;
+}
+
+.results .result {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    border-bottom: 1px solid #ccc;
+    padding: 20px 70px 20px 10px;
+}
+
+.results .result:last-child {
+    border-bottom: none; /* Remove the border for the last result */
+}
+
+.results .result p, .results .result small {
+    max-width: calc(100% - 70px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.results .result button {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+}

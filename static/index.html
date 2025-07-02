@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Bitwarden Auto-Backup Manager</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="./style.css">
+	</head>	
+	<body>
+		<div class="navigation">
+			<div class="nav-item active" name="home">
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+				</svg>
+			</div>
+			<div class="nav-item" name="backups">
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+				</svg>
+			</div>
+			<div class="nav-item" name="settings">
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
+					<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+				</svg>
+			</div>
+		</div>
+
+		<div class="page home active">
+			<h1 class="title" style="margin-bottom: 10px;">Welcome! 👋</h1>
+			<p style="color: red; margin-top: 0px; margin-bottom: 30px;" class="status">Please configure your settings before you continue.</p>
+
+			<div class="results users" style="width: 75%; margin: 0 auto; max-height: 250px;">
+				<p style="color: grey; font-size: 14px;">No accounts found in Bitwarden Desktop app.</p>
+            </div>
+
+			<p style="color: grey; font-size: 14px;">Last successful backup: <span id="last_backup">Unknown</span><br><span id="version"></span></p>
+		</div>
+
+		<div class="page backups">
+			<h1 style="margin-bottom: 10px;">Backups</h1>
+			<p style="margin-top: 0px; margin-bottom: 30px;">View your backup history and manage existing backups.</p>
+
+			<div class="results backups" style="width: 80%; margin: 0 auto; max-height: 320px;">
+				<p style="color: grey; font-size: 14px;">No backups found in your storage location.</p>
+            </div>
+		</div>
+			
+		<div class="page settings">
+			<h1 style="margin-bottom: 10px;">Settings</h1>
+			<p style="margin-top: 0px; margin-bottom: 30px;">Choose how often and where to back up your data.</p>
+			
+			<div class="form" style="width: 60%;">
+				<div class="dropdown-container">
+					<label class="label" for="dropdown">Backup Cycle</label>
+
+					<div class="dropdown" id="occurrence">
+						<div class="button">
+							<span class="selected" value="day">Day</span>
+							<span class="arrow"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6"><path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" /></svg></span>
+						</div>
+						<div class="select">
+							<div value="day">Day</div>
+							<div value="week">Week</div>
+							<div value="month">Month</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="input-container">
+					<label class="label" for="input">Storage Location</label>
+
+					<div class="input">
+						<input type="text" placeholder='C:/Users/username/Bitwarden Backups' id="folder">
+					</div>
+				</div>
+
+				<div class="input-container" style='margin-bottom: 0px;'>
+					<label class="label" for="input">Maximum Backups</label>
+
+					<div class="input">
+						<input type="number" placeholder='50' id="keeping" min="1" max="1000">
+					</div>
+				</div>
+			</div><br>
+
+			<button class="primary" onclick="saveSettings()">Save Settings</button>
+			<button class="secondary" onclick="restoreBackup()">Restore from Backup</button>
+		</div>
+	</body>
+
+	<script src="./jquery-3.6.0.min.js"></script>
+	<script>
+		ipcRenderer.on('users', (event, data) => {
+			let isProtected = true;
+			let someProtected = false;
+			$('.results.users').empty();
+
+			if(data.length === 0) {
+				return $('.results.users').append('<p style="color: grey; font-size: 14px;">No accounts found in Bitwarden Desktop app.</p>');
+			}
+
+			data.forEach(user => {
+				const userElement = $(`
+					<div class="result" uid="${user.id}">
+						<p style="margin: 0px; color: inherit">${user.name} (${user.region})</p>
+						<small style="margin-top: 5px;">Email Address: ${user.email}</small>
+						<small style="margin-top: 5px;">User ID: ${user.uid}</small>
+						<small style="margin-top: 5px; color: ${user.active ? 'green' : 'red'}; cursor: pointer;" class="toggle">${user.active ? 'Automatic backups are enabled. Click to disable.' : 'Automatic backups are disabled. Click to enable.'}</small>
+						<button class="secondary backup">Backup Now</button>
+					</div>
+				`);
+
+				userElement.find('.toggle').on('click', () => {
+					ipcRenderer.send('toggle', user);
+				});
+
+				userElement.find('.backup').on('click', () => {
+					userElement.find('.backup').text('Backing up...').prop('disabled', true);
+					ipcRenderer.send('backup', user);
+
+					setTimeout(() => {
+						userElement.find('.backup').text('Backup Now').prop('disabled', false);
+					}, 1000);
+				});
+
+				$('.results.users').append(userElement);
+				if(!user.active) {
+					isProtected = false;
+				} else {
+					someProtected = true;
+				}
+			});
+
+			if(data.length === 0) return $('.status').text('Your Bitwarden accounts are not logged in to Bitwarden Desktop.').css('color', 'orange');
+
+			if(isProtected) {
+				return $('.status').text(data.length > 1 ? 'Your Bitwarden accounts are protected with automatic backups.' : 'Your Bitwarden account is protected with automatic backups.').css('color', 'green');
+			} else if(someProtected && data.length > 1) {
+				return $('.status').text('Some of your Bitwarden accounts are protected with automatic backups.').css('color', 'orange');
+			} else {
+				return $('.status').text(data.length > 1 ? 'Your Bitwarden accounts are not protected with automatic backups.' : 'Your Bitwarden account is not protected with automatic backups.').css('color', 'red');
+			}
+		});
+
+		ipcRenderer.on('backups', (event, data) => {
+			$('.results.backups').empty();
+
+			if(data.length === 0) {
+				return $('.results.backups').append('<p style="color: grey; font-size: 14px;">No backups found in your storage location.</p>');
+			}
+
+			data.forEach(backup => {
+				const backupElement = $(`
+					<div class="result">
+						<small>Created At: <b>${new Date(backup.createdAt).toISOString().replace('T', ' ').replace('Z', '').split('.')[0]}</b></small>
+						<small style="margin-top: 5px;">Location: ${backup.id}</small>
+						<small style="margin-top: 5px;">Size: ${backup.size} bytes</small>
+						<button class="secondary restore">Restore</button>
+					</div>
+				`);
+
+				backupElement.find('.restore').on('click', () => {
+					ipcRenderer.send('restore', backup.location);
+				});
+
+				$('.results.backups').append(backupElement);
+			});
+		});
+
+		ipcRenderer.on('settings', (event, data) => {
+			try {
+				$("#occurrence .selected").val(data.occurrence);
+
+				const label = $(`#occurrence .select div[value="${data.occurrence}"]`).text();
+				$("#occurrence .selected").text(label);
+
+				$("#folder").val(data.folder);
+				$("#keeping").val(data.keeping);
+
+				let latestBackup = 0;
+
+				for (const user of data.users) {
+					if(user?.lastBackup && user.lastBackup > latestBackup) {
+						latestBackup = user.lastBackup;
+					}
+				}
+
+				if(latestBackup > 0) {
+					$("#last_backup").text(new Date(latestBackup).toISOString().replace('T', ' ').replace('Z', '').split('.')[0]);
+				} else {
+					$("#last_backup").text('Never');
+				}
+			} catch(error) {
+				return;
+			}
+		});
+
+		ipcRenderer.on('version', (event, res) => {
+			try {
+				if(res.upToDate) {
+					$("#version").html(`Software version: v${res.currentVersion} (up-to-date)`);
+				} else {
+					$("#version").html(`Software version: v${res.currentVersion} (<u style='cursor: pointer;' onclick='shell.openExternal("${res.downloadUrl}")'>update now</u>)`);
+				}
+			} catch(error) {
+				if(res.currentVersion) {
+					$("#version").html(`Software version: v${res.currentVersion} (unknown)`);
+				} else {
+					$("#version").html(`Warning: Your software may be outdated.`);
+				}
+			}
+		});
+
+		function saveSettings() {
+			const occurrence = $("#occurrence .selected").val();
+			const folder = $("#folder").val();
+			const keeping = $("#keeping").val();
+
+			ipcRenderer.send('settings', { occurrence, folder, keeping });
+		}
+
+		function restoreBackup() {
+			const $input = $('<input type="file" accept=".json">');
+			
+			$input.on('change', function(event) {
+				const file = event.target.files[0];
+				if (!file) return;
+				
+				var reader = new FileReader();
+				reader.onload = function(e) {
+					const content = JSON.parse(e.target.result);
+					const confirmation = confirm("Are you sure you'd like to continue? You'll need to enter the master password that was associated with your Bitwarden account at the time of the backup. This password is never stored, and is only used to decrypt your backup.");
+
+					if(!confirmation) return;
+					ipcRenderer.send('restore', content);
+				};
+
+				reader.readAsText(file);
+			});
+
+			$input.trigger('click');
+		}
+		
+		$(document).ready(function () {
+			$('.nav-item').on('click', function () {
+				$('.nav-item').removeClass('active');
+				$('.page').removeClass('active');
+
+				$(this).addClass('active');
+				$('.page.' + $(this).attr('name')).addClass('active');
+			});
+
+			$('.dropdown .button').on('click', function () {
+				const dropdown = $(this).closest('.dropdown');
+
+				$('.dropdown').not(dropdown).removeClass('open');
+				dropdown.toggleClass('open');
+			});
+
+			$('.dropdown .select div').on('click', function () {
+				const value = $(this).attr('value');
+				const label = $(this).text();
+				const dropdown = $(this).closest('.dropdown');
+
+				dropdown.find('.selected').attr('value', value).val(value).text(label);
+				dropdown.removeClass('open');
+			});
+
+			$(document).on('click', function (e) {
+				if (!$(e.target).closest('.dropdown').length) {
+					$('.dropdown').removeClass('open');
+				}
+			});
+
+            const now = new Date();
+            const hour = now.getHours();
+            let greeting;
+
+            if (hour >= 5 && hour < 12) {
+                greeting = "Good morning";
+            } else if (hour >= 12 && hour < 17) {
+                greeting = "Good afternoon";
+            } else {
+                greeting = "Good evening";
+            }
+
+            $('.title').text(`${greeting}! 👋`);
+		});
+	</script>
+</html> 

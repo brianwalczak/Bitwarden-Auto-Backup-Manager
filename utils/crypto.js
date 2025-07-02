@@ -11,29 +11,16 @@ const encTypes = {
     Rsa2048_OaepSha1_HmacSha256_B64: 6,
 }
 
-// Creates a random byte array of a specific length
-function randomBytes(length) {
-  const arr = new Uint8Array(length);
-  crypto.getRandomValues(arr);
-
-  return Promise.resolve(arr);
-}
-
 // Creates an array buffer from a string
 function fromUtf8(str) {
-    const strUtf8 = unescape(encodeURIComponent(str));
-    const bytes = new Uint8Array(strUtf8.length);
-    for (let i = 0; i < strUtf8.length; i++) {
-        bytes[i] = strUtf8.charCodeAt(i);
-    }
-    return bytes.buffer;
+    const encoder = new TextEncoder();
+    return encoder.encode(str).buffer;
 }
 
 // Converts a buffer to a string
 function toUtf8(buf) {
-    const bytes = new Uint8Array(buf)
-    const encodedString = String.fromCharCode.apply(null, bytes)
-    return decodeURIComponent(escape(encodedString))
+    const decoder = new TextDecoder();
+    return decoder.decode(buf);
 }
 
 // Converts a buffer to base 64 format
@@ -43,7 +30,7 @@ function toB64(buf) {
     for (let i = 0; i < bytes.byteLength; i++) {
         binary += String.fromCharCode(bytes[i]);
     }
-    return btoa(binary);
+    return Buffer.from(binary, 'binary').toString('base64');
 }
 
 // Creates a byte data class from a buffer
@@ -293,7 +280,7 @@ async function decryptToBytes(encThing, key) {
         return null;
       }
       
-      const macsMatch = await macsEqual(encThing.macBytes, computedMac, await randomBytes(32)); // Check if HMACs equal each other with random byte array
+      const macsMatch = await macsEqual(encThing.macBytes, computedMac, new Uint8Array(crypto.randomBytes(32))); // Check if HMACs equal each other with random byte array
 
       if (!macsMatch) {
         this.logMacFailed("mac failed.");
@@ -347,8 +334,6 @@ class SimpleSymmetricCryptoKey {
 }
 
 
-
-// Export all functions for use
 module.exports = {
     encTypes,
     fromUtf8,
