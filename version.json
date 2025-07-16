@@ -1,5 +1,5 @@
 {
   "latestVersion": "2.0.0",
-  "requireUpdate": true,
+  "requireUpdate": false,
   "downloadUrl": "https://github.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/releases/latest/download/Bitwarden_Auto-Backup_Manager.exe"
 }
