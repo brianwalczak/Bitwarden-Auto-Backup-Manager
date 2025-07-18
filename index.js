@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, Notification, ipcMain, shell, dialog } = require('electron');
+const { app, BrowserWindow, Menu, Notification, ipcMain, shell, dialog, globalShortcut } = require('electron');
 const { isDeepStrictEqual } = require('node:util');
 const prompt = require('electron-prompt');
 const fs = require('fs').promises;
@@ -12,7 +12,48 @@ const { readFile, compareVersions, mergeDeep, fileExists } = require('./utils/ut
 let win = null; // Global variable to hold the window instance
 let config = {
 	data: null, // User path to Bitwarden Desktop data.json file (will be defined later)
-	settings: path.join(app.getPath('userData'), 'settings.json') // User app configuration file
+	settings: path.join(app.getPath('userData'), 'settings.json'), // User app configuration file
+	logs: false
+};
+
+const logOrigin = console.log;
+const warnOrigin = console.warn;
+const errOrigin = console.error;
+
+console.log = function(...args) {
+  logOrigin.apply(console, args);
+
+  if (config.logs) {
+    dialog.showMessageBoxSync({
+      type: 'info',
+      title: 'Console Log',
+      message: args.map(String).join(' ')
+    });
+  }
+};
+
+console.warn = function(...args) {
+  warnOrigin.apply(console, args);
+
+  if (config.logs) {
+    dialog.showMessageBoxSync({
+      type: 'warning',
+      title: 'Console Warning',
+      message: args.map(String).join(' ')
+    });
+  }
+};
+
+console.error = function(...args) {
+  errOrigin.apply(console, args);
+
+  if (config.logs) {
+    dialog.showMessageBoxSync({
+      type: 'error',
+      title: 'Console Error',
+      message: args.map(String).join(' ')
+    });
+  }
 };
 
 // The code below is used so that there's never more than one process of the app running
@@ -277,6 +318,21 @@ async function createWindow() {
 		}
 	]);
   	Menu.setApplicationMenu(menu);
+
+	try {
+		globalShortcut.register('Control+Shift+D', () => {
+			config.logs = !config.logs; // Toggle developer mode
+
+			return dialog.showMessageBox({
+				type: 'info',
+				title: 'Developer Mode',
+				message: `Developer mode has been ${config.logs ? 'enabled' : 'disabled'} for this session.`,
+				buttons: ['OK']
+			});
+		});
+	} catch (error) {
+		console.warn('Developer mode shortcut registration failed, ignoring.');
+	}
 
 	win.on('close', (event) => {
         event.preventDefault();
