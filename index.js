@@ -92,53 +92,78 @@ async function getActiveUsers(active = false) {
 	const data = await readFile(config.data);
 	if(!data || !data.global_account_accounts) return null;
 
-	const users = Object.entries(data.global_account_accounts).map(([uid, { name, email }]) => ({
-		name,
-		email,
-		uid,
-		region: data?.[`user_${uid}_environment_environment`]?.region ?? 'US'
-	})).filter(user => 
-		user.name && user.email && user.region &&
-		user.name.trim() !== '' && user.email.trim() !== '' && user.region.trim() !== ''
-	);
+	let users = [];
+	
+	try {
+		users = Object.entries(data.global_account_accounts).map(([uid, { name, email }]) => ({
+			name,
+			email,
+			uid,
+			region: data?.[`user_${uid}_environment_environment`]?.region ?? 'US'
+		})).filter(user => 
+			user.name && user.email && user.region &&
+			user.name.trim() !== '' && user.email.trim() !== '' && user.region.trim() !== ''
+		);
+	} catch(error) {
+		return null;
+	}
 
 	if(!active) return users;
 
-	const settings = await getSettings();
-	if(!settings || !settings.users) return users;
+	try {
+		const settings = await getSettings();
+		if(!settings || !settings.users) return users;
 
-	for(const user of users) {
-		if(settings.users.some(u => u.uid === user.uid)) {
-			user.active = true;
-		} else {
+		for(const user of users) {
+			if(settings.users.some(u => u.uid === user.uid)) {
+				user.active = true;
+			} else {
+				user.active = false;
+			}
+		}
+	} catch(error) {
+		console.error('An error occurred while finding active user status: ', error);
+
+		for(const user of users) {
 			user.active = false;
 		}
-	};
+	}
 
 	return users;
 }
 
 // Get the settings from the settings file
 async function getSettings() {
-	const settings = await readFile(config.settings);
+	try {
+		const settings = await readFile(config.settings);
 
-	if(settings?.users) {
-		const users = await getActiveUsers(false);
-		settings.users = settings.users.filter(user => users.find(u => u.uid === user.uid)); // If the user is not found in the Bitwarden Desktop app, remove them from the settings
+		if(settings?.users) {
+			const users = await getActiveUsers(false);
+			settings.users = settings.users.filter(user => users.find(u => u.uid === user.uid)); // If the user is not found in the Bitwarden Desktop app, remove them from the settings
+		}
+
+		const data = {
+			occurrence: settings?.occurrence ?? "day",
+			folder: (settings?.folder ?? path.join(os.homedir(), 'Bitwarden Backups')).replaceAll('\\', '/'),
+			keeping: settings?.keeping ?? 50,
+			users: settings?.users ?? []
+		};
+
+		if(!isDeepStrictEqual(settings, data)) {
+			await fs.writeFile(config.settings, JSON.stringify(data, null, 2));
+		}
+
+		return data;
+	} catch (error) {
+		console.error('An error occurred while reading the settings file: ', error);
+
+		return {
+			occurrence: "day",
+			folder: path.join(os.homedir(), 'Bitwarden Backups'),
+			keeping: 50,
+			users: []
+		};
 	}
-
-	const data = {
-		occurrence: settings?.occurrence ?? "day",
-		folder: (settings?.folder ?? path.join(os.homedir(), 'Bitwarden Backups')).replaceAll('\\', '/'),
-		keeping: settings?.keeping ?? 50,
-		users: settings?.users ?? []
-	};
-
-	if(!isDeepStrictEqual(settings, data)) {
-		await fs.writeFile(config.settings, JSON.stringify(data, null, 2));
-	}
-
-	return data;
 }
 
 // Update the settings to the settings file
@@ -160,10 +185,12 @@ async function updateSettings(data) {
 
 // Collects all backups from the user's backup folder
 async function collectBackups(folder) {
-	const folders = (await fs.readdir(folder, { withFileTypes: true })).filter(file => file.isDirectory() && file.name !== 'Restored');
 	const backups = [];
 
 	try {
+		await fs.mkdir(folder, { recursive: true }); // Create requested directory if doesn't exist
+		const folders = (await fs.readdir(folder, { withFileTypes: true })).filter(file => file.isDirectory() && file.name !== 'Restored');
+
 		for (const dir of folders) {
 			const dirPath = path.join(folder, dir.name);
 			const files = (await fs.readdir(dirPath, { withFileTypes: true })).filter(file => file.isFile() && file.name.endsWith('.json'));
@@ -182,7 +209,8 @@ async function collectBackups(folder) {
 			}
 		}
 	} catch(error) {
-		console.error('Error collecting backups:', error);
+		console.error('An error occurred when attempting to collect backups:', error);
+		return [];
 	}
 
 	return backups.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
@@ -267,7 +295,7 @@ async function createWindow() {
 			win.webContents.send('settings', settings);
 			win.webContents.send('backups', backups);
 		} catch(error) {
-			return console.error('An error occurred while loading the page:', error);
+			return console.error('An error occurred while loading the window page: ', error);
 		}
   	});
 
