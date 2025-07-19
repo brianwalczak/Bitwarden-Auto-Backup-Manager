@@ -131,16 +131,22 @@ async function decryptFile(backup, masterPassword) {
 // Get the users from the Bitwarden Desktop app
 async function getActiveUsers(active = false) {
 	const data = await readFile(config.data);
-	if(!data || !data.global_account_accounts) return null;
+	if (!data || (!data.global_account_accounts && (!data.global_account_activeAccountId || !data?.[data.global_account_activeAccountId]?.profile))) return null;
 
+	const searchable = data?.global_account_accounts ?? {
+		[data.global_account_activeAccountId]: {
+			name: data?.[data.global_account_activeAccountId]?.profile?.name || 'Unknown',
+			email: data?.[data.global_account_activeAccountId]?.profile?.email || 'Unknown'
+		}
+	};
 	let users = [];
 	
 	try {
-		users = Object.entries(data.global_account_accounts).map(([uid, { name, email }]) => ({
+		users = Object.entries(searchable).map(([uid, { name, email }]) => ({
 			name,
 			email,
 			uid,
-			region: data?.[`user_${uid}_environment_environment`]?.region ?? 'US'
+			region: data?.[`user_${uid}_environment_environment`]?.region?.trim() || 'US'
 		})).filter(user => 
 			user.name && user.email && user.region &&
 			user.name.trim() !== '' && user.email.trim() !== '' && user.region.trim() !== ''

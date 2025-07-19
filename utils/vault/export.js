@@ -15,13 +15,13 @@ const { CipherWithIdExport } = require('../../libs/common/src/models/export/ciph
 async function exportVault(appData, uid = null) {
     const userData = await readFile(appData);
     const userId = uid ?? userData.global_account_activeAccountId;
-    const env = userData[`user_${userId}_environment_environment`] || { region: 'US' };
+    const region = userData?.[`user_${userId}_environment_environment`]?.region?.trim() || 'US';
 
     let refreshToken = await getCredential('Bitwarden', userId + '_refreshToken');
     refreshToken = refreshToken.replace(/[^A-Z0-9\-]/g, ''); // Remove weird white space
 
-    const accessToken = await getAccessToken(refreshToken, env.region);
-    const vault = await syncVault(accessToken, env.region);
+    const accessToken = await getAccessToken(refreshToken, region);
+    const vault = await syncVault(accessToken, region);
     let ciphersData = {};
     let foldersData = {};
 
