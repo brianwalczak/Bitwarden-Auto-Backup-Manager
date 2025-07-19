@@ -236,7 +236,9 @@ async function collectBackups(folder) {
 
 	try {
 		await fs.mkdir(folder, { recursive: true }); // Create requested directory if doesn't exist
-		const folders = (await fs.readdir(folder, { withFileTypes: true })).filter(file => file.isDirectory() && file.name !== 'Restored');
+		const fileList = await fs.readdir(folder, { withFileTypes: true });
+		const folders = fileList.filter(file => file.isDirectory() && file.name !== 'Restored');
+		const oldFiles = fileList.filter(file => file.isFile() && file.name.endsWith('.json')); // add support for old backups (v1.3.0 and below)
 
 		for (const dir of folders) {
 			const dirPath = path.join(folder, dir.name);
@@ -254,6 +256,19 @@ async function collectBackups(folder) {
 					location: filePath
 				});
 			}
+		}
+
+		for (const file of oldFiles) {
+			const filePath = path.join(folder, file.name);
+			const stats = await fs.stat(filePath);
+
+			backups.push({
+				id: 'main directory',
+				name: file.name.replace('.json', ''),
+				createdAt: stats.birthtimeMs,
+				size: stats.size,
+				location: filePath
+			});
 		}
 	} catch(error) {
 		console.error('An error occurred when attempting to collect backups:', error);
