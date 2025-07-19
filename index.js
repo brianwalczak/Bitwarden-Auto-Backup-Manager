@@ -135,22 +135,21 @@ async function getActiveUsers(active = false) {
 
 	const searchable = data?.global_account_accounts ?? {
 		[data.global_account_activeAccountId]: {
-			name: data?.[data.global_account_activeAccountId]?.profile?.name || 'Unknown',
-			email: data?.[data.global_account_activeAccountId]?.profile?.email || 'Unknown'
+			name: data?.[data.global_account_activeAccountId]?.profile?.name ?? null,
+			email: data?.[data.global_account_activeAccountId]?.profile?.email ?? null
 		}
 	};
 	let users = [];
 	
 	try {
-		users = Object.entries(searchable).map(([uid, { name, email }]) => ({
-			name,
-			email,
-			uid,
+		users = Object.entries(searchable).filter(([uid, account]) => {
+			return (typeof uid === 'string' && uid.trim() !== '') && (typeof account?.email === 'string' && account.email.trim() !== ''); // filter out deleted accounts or invalid ones (check if UID and email are both valid)
+		}).map(([uid, account]) => ({
+			name: (account.name && account.name.trim() !== '') ? account.name : null,
+			email: account.email, // already filtered above
+			uid, // already filtered above
 			region: data?.[`user_${uid}_environment_environment`]?.region?.trim() || 'US'
-		})).filter(user => 
-			user.name && user.email && user.region &&
-			user.name.trim() !== '' && user.email.trim() !== '' && user.region.trim() !== ''
-		);
+		}));
 	} catch(error) {
 		return null;
 	}

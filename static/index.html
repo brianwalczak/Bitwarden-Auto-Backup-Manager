@@ -102,7 +102,7 @@
 			data.forEach(user => {
 				const userElement = $(`
 					<div class="result" uid="${user.id}">
-						<p style="margin: 0px; color: inherit">${user.name} (${user.region})</p>
+						<p style="margin: 0px; color: inherit">${user.name ?? 'Bitwarden User'} (${user.region})</p>
 						<small style="margin-top: 5px;">Email Address: ${user.email}</small>
 						<small style="margin-top: 5px;">User ID: ${user.uid}</small>
 						<small style="margin-top: 5px; color: ${user.active ? 'green' : 'red'}; cursor: pointer;" class="toggle">${user.active ? 'Automatic backups are enabled. Click to disable.' : 'Automatic backups are disabled. Click to enable.'}</small>
