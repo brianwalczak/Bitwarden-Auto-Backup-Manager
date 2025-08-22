@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, Notification, ipcMain, shell, dialog } = require('electron');
+const { app, BrowserWindow, Menu, Notification, Tray, ipcMain, shell, dialog } = require('electron');
 const { isDeepStrictEqual } = require('node:util');
 const prompt = require('electron-prompt');
 const fs = require('fs').promises;
@@ -10,6 +10,8 @@ const { restoreBackup } = require('./utils/vault/restore.js'); // Restores a use
 const { readFile, compareVersions, mergeDeep, fileExists } = require('./utils/utils.js');
 
 let win = null; // Global variable to hold the window instance
+let tray = null; // Global variable to hold the tray instance
+let statusCache = null;
 let config = {
 	data: null, // User path to Bitwarden Desktop data.json file (will be defined later)
 	settings: path.join(app.getPath('userData'), 'settings.json') // User app configuration file
@@ -68,6 +70,60 @@ async function checkForUpdates(window) {
 	} catch(error) {
 		console.log('Unable to check for new updates, skipped.');
 	}
+}
+
+// Creates the system tray app icon
+async function updateTray(statusText = null) {
+	if(!tray) {
+		tray = new Tray('static/icon.ico');
+		tray.setToolTip('Bitwarden Auto-Backup Manager');
+
+		tray.on('click', () => {
+			win.show();
+			win.reload();
+			win.focus();
+		});
+	}
+
+	const menu = Menu.buildFromTemplate([
+		{ 
+			label: statusText ?? "⚠️ Last successful backup: Never", 
+			enabled: false
+		},
+		{ type: 'separator' },
+		{
+			label: 'Backup Now',
+			click: () => {
+				// already opens at home page
+				win.reload();
+				win.show();
+				win.focus();
+			}
+		},
+		{
+			label: 'Restore Backup',
+			click: async () => await restoreHandler()
+		},
+		{ type: 'separator' },
+		{
+			label: 'Settings',
+			click: () => {
+				win.show();
+				win.webContents.send('tray_click', { action: 'settings' });
+			}
+		},
+		{
+			label: 'View Logs',
+			click: () => {
+				win.show();
+				win.webContents.send('tray_click', { action: 'backups' });
+			}
+		},
+		{ type: 'separator' },
+		{ label: 'Exit', click: () => app.exit() }
+	]);
+
+	return tray.setContextMenu(menu);
 }
 
 // Decrypts the file provided with a master password
@@ -158,6 +214,23 @@ async function getSettings() {
 			await fs.writeFile(config.settings, JSON.stringify(data, null, 2));
 		}
 
+
+		// Update the tray status with existing data (included here to prevent large I/O reads)
+		let latestBackup = 0;
+		let oldStatus = statusCache;
+
+		for (const user of data.users) {
+			if(user?.lastBackup && user.lastBackup > latestBackup) {
+				latestBackup = user.lastBackup;
+			}
+		}
+		
+		statusCache = latestBackup > 0 ? `✅ Last successful backup: ${new Date(latestBackup).toISOString().replace('T', ' ').replace('Z', '').split('.')[0]}` : '⚠️ Last successful backup: Never';
+		
+		if(oldStatus !== statusCache) {
+			updateTray(statusCache);
+		}
+
 		return data;
 	} catch (error) {
 		console.error('An error occurred while reading the settings file: ', error);
@@ -234,6 +307,54 @@ async function collectBackups(folder) {
 	}
 
 	return backups.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+}
+
+async function restoreHandler(data = null) {
+	try {
+		if (typeof data === 'string' && path.extname(data)) {
+			data = await readFile(data);
+		} else {
+			const { canceled, filePaths } = await dialog.showOpenDialog(win, {
+				title: 'Select a Backup',
+				buttonLabel: 'Restore',
+				filters: [{ name: 'Bitwarden Vault (.json)', extensions: ['json'] }],
+				properties: ['openFile']
+			});
+
+			if (canceled || filePaths.length === 0) return null;
+			data = await readFile(filePaths[0]);
+		}
+	} catch {
+		return dialog.showErrorBox("Restore Failed", "An error occurred while reading your backup file. Please ensure that the file exists and is a valid Bitwarden backup file.");
+	}
+	
+	prompt({
+		title: 'Restore from Backup',
+		label: 'Master Password',
+		type: 'input',
+		inputAttrs: {
+			type: 'password'
+		},
+	}).then(async (password) => {
+		if (password === null) return;
+		if(!data) return dialog.showErrorBox("Restore Failed", "An error occurred while reading your backup file. Please ensure that the file exists and is a valid Bitwarden backup file.");
+		
+		const decryption = await decryptFile(data, password);
+		if(!decryption.success) return dialog.showErrorBox("Restore Failed", `An error occurred when decrypting your file. Please ensure that you've entered the correct master password and your backup file isn't corrupted.\n\nError: ` + decryption.reason || 'Unknown');
+		
+		shell.showItemInFolder(decryption.location);
+		dialog.showMessageBox({
+			type: 'info',
+			title: 'Restore Successful',
+			message: `Restore Successful`,
+			detail: `Your Bitwarden vault export was successful. Remember to keep the file safe, because it contains all of your decrypted vault data.`,
+			buttons: ['OK']
+		});
+
+		return true;
+	}).catch((err) => {
+		return dialog.showErrorBox("Restore Failed", "An error occurred while reading your backup file. Please ensure that the file exists and is a valid Bitwarden backup file.");
+	});
 }
 
 async function createWindow() {
@@ -375,37 +496,11 @@ async function createWindow() {
 		win.webContents.send('users', users); // Send the updated users to the renderer process
 	});
 
-	ipcMain.on('restore', async (event, data) => {
-		prompt({
-			title: 'Restore from Backup',
-			label: 'Master Password',
-			type: 'input',
-			inputAttrs: {
-				type: 'password'
-			},
-		}).then(async (password) => {
-			if (password === null) return;
-			if (typeof data === 'string' && path.extname(data)) {
-				data = await readFile(data);
-			}
+	ipcMain.on('restore', async (event, data = null) => {
+		return restoreHandler(data);
+	});
 
-			if(!data) return dialog.showErrorBox("Restore Failed", "An error occurred while reading your backup file. Please ensure that the file exists and is a valid Bitwarden backup file.");
-			
-            const decryption = await decryptFile(data, password);
-            if(!decryption.success) return dialog.showErrorBox("Restore Failed", `An error occurred when decrypting your file. Please ensure that you've entered the correct master password and your backup file isn't corrupted.\n\nError: ` + decryption.reason || 'Unknown');
-            
-            shell.showItemInFolder(decryption.location);
-			dialog.showMessageBox({
-				type: 'info',
-				title: 'Restore Successful',
-				message: `Restore Successful`,
-				detail: `Your Bitwarden vault export was successful. Remember to keep the file safe, because it contains all of your decrypted vault data.`,
-				buttons: ['OK']
-			});
-
-			return true;
-		}).catch((err) => {});
- 	});
+	await updateTray();
 }
 
 // Get the next backup date in Epoch time based on settings

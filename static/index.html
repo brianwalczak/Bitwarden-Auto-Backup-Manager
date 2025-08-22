@@ -211,6 +211,17 @@
 			}
 		});
 
+		ipcRenderer.on('tray_click', (event, data) => {
+			const elem = $(`.nav-item[name="${data.action}"]`);
+			if(!elem) return;
+
+			$('.nav-item').removeClass('active');
+			$('.page').removeClass('active');
+
+			elem.addClass('active');
+			$('.page.' + elem.attr('name')).addClass('active');
+		});
+
 		function saveSettings() {
 			const occurrence = $("#occurrence .selected").val();
 			const folder = $("#folder").val();
@@ -220,25 +231,7 @@
 		}
 
 		function restoreBackup() {
-			const $input = $('<input type="file" accept=".json">');
-			
-			$input.on('change', function(event) {
-				const file = event.target.files[0];
-				if (!file) return;
-				
-				var reader = new FileReader();
-				reader.onload = function(e) {
-					const content = JSON.parse(e.target.result);
-					const confirmation = confirm("Are you sure you'd like to continue? You'll need to enter the master password that was associated with your Bitwarden account at the time of the backup. This password is never stored, and is only used to decrypt your backup.");
-
-					if(!confirmation) return;
-					ipcRenderer.send('restore', content);
-				};
-
-				reader.readAsText(file);
-			});
-
-			$input.trigger('click');
+			return ipcRenderer.send('restore');
 		}
 		
 		$(document).ready(function () {
