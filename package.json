@@ -21,7 +21,13 @@
       "perMachine": false,
       "runAfterFinish": true,
       "installerIcon": "static/icon.ico"
-    }
+    },
+    "extraResources": [
+      {
+        "from": "static/",
+        "to": "static/"
+      }
+    ]
   },
   "dependencies": {
     "electron-prompt": "^1.7.0",

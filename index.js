@@ -75,7 +75,7 @@ async function checkForUpdates(window) {
 // Creates the system tray app icon
 async function updateTray(statusText = null) {
 	if(!tray) {
-		tray = new Tray('static/icon.ico');
+		tray = new Tray(path.join((app.isPackaged ? process.resourcesPath : __dirname), 'static', 'icon.png'));
 		tray.setToolTip('Bitwarden Auto-Backup Manager');
 
 		tray.on('click', () => {
