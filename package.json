@@ -3,7 +3,7 @@
   "productName": "Bitwarden Auto-Backup Manager",
   "description": "A robust application that creates local, encrypted auto-backups for your Bitwarden vault.",
   "author": "Brian Walczak",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "main": "index.js",
   "scripts": {
     "pack": "electron-builder --dir",

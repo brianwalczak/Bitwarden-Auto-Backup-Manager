@@ -1,6 +1,24 @@
+function joinUrl(base, path) {
+    return base.replace(/\/+$/, '') + '/' + path.replace(/^\/+/, '');
+}
+
 // Creates an API request to Bitwarden creating an access token
-async function getAccessToken(refresh_token, region) {
-    const req = await fetch(`https://${region == 'EU' ? 'identity.bitwarden.eu' : 'identity.bitwarden.com'}/connect/token`, {
+async function getAccessToken(refresh_token, region, urls = null) {
+    let domain = null;
+    if(urls?.base) {
+      if(urls?.identity) {
+        domain = joinUrl(urls.identity, '/connect/token');
+      } else {
+        domain = joinUrl(urls.base, '/identity' + '/connect/token');
+      }
+    } else if(region === 'EU') {
+      domain = 'https://identity.bitwarden.eu/connect/token';
+    } else {
+      // default to US server
+      domain = 'https://identity.bitwarden.com/connect/token';
+    }
+
+    const req = await fetch(domain, {
         method: 'POST',
         headers: {
           'content-type': 'application/x-www-form-urlencoded; charset=utf-8',
@@ -18,8 +36,22 @@ async function getAccessToken(refresh_token, region) {
 }
 
 // Creates an API request to Bitwarden to sync your vault
-async function syncVault(access_token, region) {
-    const req = await fetch(`https://${region == 'EU' ? 'api.bitwarden.eu' : 'api.bitwarden.com'}/sync?excludeDomains=true`, {
+async function syncVault(access_token, region, urls = null) {
+    let domain = null;
+    if(urls?.base) {
+      if(urls?.api) {
+        domain = joinUrl(urls.api, '/sync?excludeDomains=true');
+      } else {
+        domain = joinUrl(urls.base, '/api' + '/sync?excludeDomains=true');
+      }
+    } else if(region === 'EU') {
+      domain = 'https://api.bitwarden.eu/sync?excludeDomains=true';
+    } else {
+      // default to US server
+      domain = 'https://api.bitwarden.com/sync?excludeDomains=true';
+    }
+
+    const req = await fetch(domain, {
         headers: {
           'authorization': 'Bearer ' + access_token,
           'accept': 'application/json',
@@ -31,8 +63,22 @@ async function syncVault(access_token, region) {
 }
 
 // Function to get the user iteration count
-async function getIterations(email) {
-    const req = await fetch("https://vault.bitwarden.com/identity/accounts/prelogin", {
+async function getIterations(email, region, urls = null) {
+    let domain = null;
+    if(urls?.base) {
+      if(urls?.identity) {
+        domain = joinUrl(urls.identity, '/accounts/prelogin');
+      } else {
+        domain = joinUrl(urls.base, '/identity' + '/accounts/prelogin');
+      }
+    } else if(region === 'EU') {
+      domain = 'https://identity.bitwarden.eu/accounts/prelogin';
+    } else {
+      // default to US server
+      domain = 'https://identity.bitwarden.com/accounts/prelogin';
+    }
+
+    const req = await fetch(domain, {
         "headers": {
           "content-type": "application/json; charset=utf-8",
         },
@@ -40,7 +86,7 @@ async function getIterations(email) {
         "method": "POST"
     });
     const res = await req.json();
-    if(!res.kdfIterations) return null;
+    if(res.kdf === undefined || res.kdfIterations === undefined || res.kdf !== 0) return null;
 
     return res.kdfIterations;
 }

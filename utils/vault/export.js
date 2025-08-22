@@ -16,12 +16,13 @@ async function exportVault(appData, uid = null) {
     const userData = await readFile(appData);
     const userId = uid ?? userData.global_account_activeAccountId;
     const region = userData?.[`user_${userId}_environment_environment`]?.region?.trim() || 'US';
+    const urls = userData?.[`user_${userId}_environment_environment`]?.urls || null;
 
     let refreshToken = await getCredential('Bitwarden', userId + '_refreshToken');
     refreshToken = refreshToken.replace(/[^A-Z0-9\-]/g, ''); // Remove weird white space
 
-    const accessToken = await getAccessToken(refreshToken, region);
-    const vault = await syncVault(accessToken, region);
+    const accessToken = await getAccessToken(refreshToken, region, urls);
+    const vault = await syncVault(accessToken, region, urls);
     let ciphersData = {};
     let foldersData = {};
 
@@ -53,7 +54,7 @@ async function exportVault(appData, uid = null) {
     }
 
     ciphers = ciphers.filter((f) => f.deletedDate == null);
-    const iterations = await getIterations(vault.profile.email);
+    const iterations = await getIterations(vault.profile.email, region, urls);
     if(!iterations) return console.log('At this time, only PBKDF2 is supported.');
 
     const jsonDoc = {
