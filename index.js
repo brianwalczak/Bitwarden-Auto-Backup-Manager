@@ -362,6 +362,7 @@ async function createWindow() {
     	width: 750,
     	height: 600,
 		resizable: false,
+		show: !(process.argv.includes('--quiet')),
     	webPreferences: {
         	nodeIntegration: false,
         	contextIsolation: true,
@@ -645,7 +646,8 @@ app.on("ready", async () => {
     // Enable auto-backup to run in the background at startup
     app.setLoginItemSettings({
         openAtLogin: true,
-        path: app.getPath("exe")
+        path: app.getPath("exe"),
+		args: ["--quiet"]
     });
 
 	// Simple check if the user has the Bitwarden Desktop app and proper data installed.
