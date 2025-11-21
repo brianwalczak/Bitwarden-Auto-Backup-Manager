@@ -1,9 +1,6 @@
 # Bitwarden Auto-Backup Manager (Beta)
 A robust application that creates local, encrypted auto-backups for your Bitwarden vaults without using your master password.
 
-> [!WARNING]
-> **This app is currently in its beta state as we collect more information. I am not responsible for any issues that may occur during use. If you find a bug, please report it <a href='https://github.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/issues'>here</a> as I make improvements :)**
-
 <img src="https://raw.githubusercontent.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/refs/heads/gh-pages/home.png" height="250" /> <img src="https://raw.githubusercontent.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/refs/heads/gh-pages/backups.png" height="250" /> <img src="https://raw.githubusercontent.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/refs/heads/gh-pages/settings.png" height="250" />
 
 ## Features
