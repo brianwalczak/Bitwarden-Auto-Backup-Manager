@@ -18,9 +18,7 @@ async function exportVault(appData, uid = null) {
     const region = userData?.[`user_${userId}_environment_environment`]?.region?.trim() || 'US';
     const urls = userData?.[`user_${userId}_environment_environment`]?.urls || null;
 
-    let refreshToken = await getCredential('Bitwarden', userId + '_refreshToken');
-    refreshToken = refreshToken.replace(/[^A-Z0-9\-]/g, ''); // Remove weird white space
-
+    const refreshToken = await getCredential('Bitwarden', userId + '_refreshToken');
     const accessToken = await getAccessToken(refreshToken, region, urls);
     const vault = await syncVault(accessToken, region, urls);
     let ciphersData = {};

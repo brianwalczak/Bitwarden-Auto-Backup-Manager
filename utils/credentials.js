@@ -17,9 +17,12 @@ async function findCredential(service, code) {
 
 // Simple function written with keytar to find exact credential
 async function getCredential(service, account) {
-    const password = await keytar.getPassword(service, account);
+    let password = await keytar.getPassword(service, account);
 
-    return password?.replaceAll('"', '') ?? null;
+    // Windows stores credentials as UTF-16LE, so it may have some ugly null bytes
+    password = password?.replace(/\0/g, '')?.trim(); // remove null bytes and whitespace
+
+    return password?.replaceAll('"', '') ?? null; // remove any quotes
 }
 
 module.exports = {
