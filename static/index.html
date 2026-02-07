@@ -3,6 +3,7 @@
 	<head>
 		<title>Bitwarden Auto-Backup Manager</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self'; connect-src 'self';">
 		<link rel="stylesheet" href="./style.css">
 	</head>	
 	<body>
@@ -83,8 +84,8 @@
 				</div>
 			</div><br>
 
-			<button class="primary" onclick="saveSettings()">Save Settings</button>
-			<button class="secondary" onclick="restoreBackup()">Restore from Backup</button>
+			<button class="primary" id="save_settings">Save Settings</button>
+			<button class="secondary" id="restore_backup">Restore from Backup</button>
 		</div>
 	</body>
 

@@ -108,7 +108,11 @@ window.ipcRenderer.on('version', (event, res) => {
         if (res.upToDate) {
             $("#version").html(`Software version: v${res.currentVersion} (up-to-date)`);
         } else {
-            $("#version").html(`Software version: v${res.currentVersion} (<u style='cursor: pointer;' onclick='window.shell.openExternal("${res.downloadUrl}")'>update now</u>)`);
+            $("#version").html(`Software version: v${res.currentVersion} (<u id='update_now' style='cursor: pointer;'>update now</u>)`);
+
+            $('#update_now').on('click', () => {
+                window.shell.openExternal(res.downloadUrl);
+            });
         }
     } catch (error) {
         if (res.currentVersion) {
@@ -130,17 +134,17 @@ window.ipcRenderer.on('tray_click', (event, data) => {
     $('.page.' + elem.attr('name')).addClass('active');
 });
 
-function saveSettings() {
+$('#save_settings').on('click', () => {
     const occurrence = $("#occurrence .selected").val();
     const folder = $("#folder").val();
     const keeping = $("#keeping").val();
 
     window.ipcRenderer.send('settings', { occurrence, folder, keeping });
-}
+});
 
-function restoreBackup() {
+$('#restore_backup').on('click', () => {
     return window.ipcRenderer.send('restore');
-}
+});
 
 $(document).ready(function () {
     $('.nav-item').on('click', function () {
