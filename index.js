@@ -385,7 +385,7 @@ async function createWindow() {
 					type: 'info',
 					title: 'Learn more',
 					message: `Software Details`,
-					detail: `Bitwarden Auto-Backup Manager v${app.getVersion()}\nDeveloped by Brian Walczak\nIf you find this software useful, please consider supporting its development.\n\n© 2024 Brian Walczak`,
+					detail: `Bitwarden Auto-Backup Manager v${app.getVersion()}\nDeveloped by Brian Walczak\nIf you find this software useful, please consider supporting its development.\n\n© ${new Date().getFullYear()} Brian Walczak`,
 					buttons: ['Support Me', 'Learn More', 'OK'],
 					cancelId: 2
 				}).then((response) => {
