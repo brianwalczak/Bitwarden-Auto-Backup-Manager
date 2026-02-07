@@ -26,6 +26,7 @@ log.initialize();
 
 if (!app.requestSingleInstanceLock()) { // Check if this instance is the first instance or a second instance
     // If this process not the first instance, force quit
+	log.warn('[Main Process] A new instance was launched, but Bitwarden Auto-Backup Manager is already running.');
     process.exit();
 } else {
     // If we are the first instance, create the window and detect for other instances
@@ -71,7 +72,7 @@ async function checkForUpdates(window) {
 			window.webContents.send('version', res);
 		}
 	} catch(error) {
-		console.log('Unable to check for new updates, skipped.');
+		log.error('[Main Process] Unable to check for new updates (version information):', error);
 	}
 }
 
@@ -142,6 +143,7 @@ async function decryptFile(backup, masterPassword) {
         await fs.writeFile(path.join(folder, file), JSON.stringify(decBackup, null, "  "), 'utf8');
         return { success: true, location: path.join(folder, file) };
     } catch(error) {
+		log.error('[Main Process] Unable to decrypt a backup file:', error);
         return { success: false, reason: error.toString() };
     }
 }
@@ -169,6 +171,7 @@ async function getActiveUsers(active = false) {
 			region: data?.[`user_${uid}_environment_environment`]?.region?.trim() || 'US'
 		}));
 	} catch(error) {
+		log.error('[Main Process] Unable to fetch users from Bitwarden Desktop app:', error);
 		return null;
 	}
 
@@ -186,7 +189,7 @@ async function getActiveUsers(active = false) {
 			}
 		}
 	} catch(error) {
-		console.error('An error occurred while finding active user status: ', error);
+		log.error('[Main Process] Unable to fetch active user status from settings:', error);
 
 		for(const user of users) {
 			user.active = false;
@@ -236,7 +239,7 @@ async function getSettings() {
 
 		return data;
 	} catch (error) {
-		console.error('An error occurred while reading the settings file: ', error);
+		log.warn('[Main Process] Unable to read the settings file, using generic settings configuration:', error);
 
 		return {
 			occurrence: "day",
@@ -260,6 +263,7 @@ async function updateSettings(data) {
 
 		return settings;
 	} catch(error) {
+		log.error('[Main Process] Unable to update the settings file:', error);
 		return null;
 	}
 }
@@ -305,7 +309,7 @@ async function collectBackups(folder) {
 			});
 		}
 	} catch(error) {
-		console.error('An error occurred when attempting to collect backups:', error);
+		log.error('[Main Process] Failed to read saved backups from ' + folder + ':', error);
 		return [];
 	}
 
@@ -327,7 +331,8 @@ async function restoreHandler(data = null) {
 			if (canceled || filePaths.length === 0) return null;
 			data = await readFile(filePaths[0]);
 		}
-	} catch {
+	} catch (error) {
+		log.error('[Main Process] Unable to read the requested backup file to restore:', error);
 		return dialog.showErrorBox("Restore Failed", "An error occurred while reading your backup file. Please ensure that the file exists and is a valid Bitwarden backup file.");
 	}
 	
@@ -340,11 +345,17 @@ async function restoreHandler(data = null) {
 		},
 	}).then(async (password) => {
 		if (password === null) return;
-		if(!data) return dialog.showErrorBox("Restore Failed", "An error occurred while reading your backup file. Please ensure that the file exists and is a valid Bitwarden backup file.");
+		if(!data) {
+			log.error('[Main Process] No data found to restore from the backup file.');
+			return dialog.showErrorBox("Restore Failed", "An error occurred while reading your backup file. Please ensure that the file exists and is a valid Bitwarden backup file.");
+		}
 		
 		const decryption = await decryptFile(data, password);
-		if(!decryption.success) return dialog.showErrorBox("Restore Failed", `An error occurred when decrypting your file. Please ensure that you've entered the correct master password and your backup file isn't corrupted.\n\nError: ` + decryption.reason || 'Unknown');
-		
+		if(!decryption.success) {
+			log.error('[Main Process] Unable to decrypt the backup file with the provided master password:', decryption);
+			return dialog.showErrorBox("Restore Failed", `An error occurred when decrypting your file. Please ensure that you've entered the correct master password and your backup file isn't corrupted.\n\nError: ` + decryption.reason || 'Unknown');
+		}
+
 		shell.showItemInFolder(decryption.location);
 		dialog.showMessageBox({
 			type: 'info',
@@ -356,6 +367,7 @@ async function restoreHandler(data = null) {
 
 		return true;
 	}).catch((err) => {
+		log.error('[Main Process] Unknown error while restoring from backup:', err);
 		return dialog.showErrorBox("Restore Failed", "An error occurred while reading your backup file. Please ensure that the file exists and is a valid Bitwarden backup file.");
 	});
 }
@@ -440,7 +452,7 @@ async function createWindow() {
 			win.webContents.send('settings', settings);
 			win.webContents.send('backups', backups);
 		} catch(error) {
-			return console.error('An error occurred while loading the window page: ', error);
+			return log.error('[Main Process] Error while loading the window page:', error);
 		}
   	});
 
@@ -448,10 +460,16 @@ async function createWindow() {
 		const users = await getActiveUsers(false);
 		const isUser = users.some(u => u.uid === user.uid);
 
-		if(!isUser) return dialog.showErrorBox("User Not Found", "We were unable to find the user in your Bitwarden Desktop app. Please ensure that you have logged in to this Bitwarden account before.");
+		if(!isUser) {
+			log.error('[Main Process] User not found in Bitwarden Desktop app during backup attempt:', user);
+			return dialog.showErrorBox("User Not Found", "We were unable to find the user in your Bitwarden Desktop app. Please ensure that you have logged in to this Bitwarden account before.");
+		}
 
 		const backup = await performBackup(user.uid);
-		if(!backup) return dialog.showErrorBox("Backup Failed", "An error occurred while performing your Bitwarden vault backup. Please ensure that your Bitwarden Desktop app is installed and you have a valid internet connection.");
+		if(!backup) {
+			log.error('[Main Process] Error, backup failed for user:', user);
+			return dialog.showErrorBox("Backup Failed", "An error occurred while performing your Bitwarden vault backup. Please ensure that your Bitwarden Desktop app is installed and you have a valid internet connection.");
+		}
 
 		const notification = new Notification({ 
 			title: "Backup Completed", 
@@ -466,7 +484,10 @@ async function createWindow() {
 	
   	ipcMain.on('settings', async (event, settings) => {
 		const update = await updateSettings(settings);
-		if(!update) return dialog.showErrorBox("Settings Update Failed", "Your settings have failed to update. Please ensure that the file isn't corrupted, and you have write permissions to your configuration file.");
+		if(!update) {
+			log.error('[Main Process] Failed to update settings with data:', settings);
+			return dialog.showErrorBox("Settings Update Failed", "Your settings have failed to update. Please ensure that the file isn't corrupted, and you have write permissions to your configuration file.");
+		}
 
 		win.webContents.send('settings', update); // Send the updated settings to the renderer process
 		return new Notification({ title: "Settings Updated", body: "Your settings have been updated successfully." }).show();
@@ -476,7 +497,10 @@ async function createWindow() {
 		const users = await getActiveUsers(true);
 		const isUser = users.find(u => u.uid === user.uid);
 
-		if(!isUser) return dialog.showErrorBox("User Not Found", "We were unable to find the user in your Bitwarden Desktop app. Please ensure that you have logged in to this Bitwarden account before.");
+		if(!isUser) {
+			log.error('[Main Process] User not found in Bitwarden Desktop app during toggle attempt:', user);
+			return dialog.showErrorBox("User Not Found", "We were unable to find the user in your Bitwarden Desktop app. Please ensure that you have logged in to this Bitwarden account before.");
+		}
 
 		const settings = await getSettings();
 		const index = settings.users.findIndex(u => u.uid === user.uid);
@@ -494,7 +518,10 @@ async function createWindow() {
 		}
 
 		const update = await updateSettings(settings);
-		if(!update) return dialog.showErrorBox("Settings Update Failed", "Your settings have failed to update. Please ensure that the file isn't corrupted, and you have write permissions to your configuration file.");
+		if(!update) {
+			log.error('[Main Process] Failed to update settings with data:', settings);
+			return dialog.showErrorBox("Settings Update Failed", "Your settings have failed to update. Please ensure that the file isn't corrupted, and you have write permissions to your configuration file.");
+		}
 
 		new Notification({ title: `Backups ${isUser.active ? 'Enabled' : 'Disabled'}`, body: `You have successfully ${isUser.active ? 'enabled' : 'disabled'} backups for your Bitwarden account.` }).show();
 		win.webContents.send('users', users); // Send the updated users to the renderer process
@@ -586,6 +613,7 @@ async function performBackup(uid) {
 		
 		return path.join(folder, file);
 	} catch (error) {
+		log.error('[Main Process] Unable to perform backup for user ' + uid + ':', error);
 		return null;
 	}
 }
@@ -633,6 +661,7 @@ async function backgroundBackupCheck() {
 			continue;
 		}
 	} catch(error) {
+		log.error('[Main Process] Unable to perform background backup check:', error);
 		dialog.showErrorBox('Background Error', `We we're unable to check for upcoming Bitwarden vault backups. Please ensure that you've entered valid settings, and your AppData isn't corrupted.`);
 		process.exit();
 	}
