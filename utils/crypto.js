@@ -202,13 +202,13 @@ async function aesDecrypt(cipher, encKey, macKey) {
   const checkMac = cipher.encType != encTypes.AesCbc256_B64
 
   if (checkMac) {
-    if (!macKey) throw new Error('Decryption error: MAC key was not provided or is invalid.');
+    if (!macKey) throw new Error('MAC key was not provided or is invalid.');
 
     const dataForMac = buildDataForMac(cipher.iv.arr, cipher.ct.arr);
     const macBuffer = await computeMac(dataForMac.buffer, macKey.arr.buffer);
     const macsMatch = await macsEqual(cipher.mac.arr.buffer, macBuffer, macKey.arr.buffer);
 
-    if (!macsMatch) throw new Error('Decryption error: MAC check failed (likely incorrect password).');
+    if (!macsMatch) throw new Error('MAC check failed (likely incorrect password).');
     const importedKey = await crypto.subtle.importKey('raw', encKey.arr.buffer, keyOptions, false, ['decrypt']);
 
     return crypto.subtle.decrypt(decOptions, importedKey, cipher.ct.arr.buffer);
@@ -238,11 +238,11 @@ async function aesDecryptKey(data, iv, key) {
 // Function which utilizes the encryption key and "key" value to create a new byte symmetric key
 async function decryptToBytes(encThing, key) {
   if (key == null) {
-    throw new Error("Decryption error: No encryption key provided.");
+    throw new Error("No encryption key was provided for decryption.");
   }
 
   if (encThing == null) {
-    throw new Error("Decryption error: Nothing provided for decryption.");
+    throw new Error("No data was provided for decryption.");
   }
 
   key = resolveLegacyKey(key, encThing);
