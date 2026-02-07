@@ -82,6 +82,7 @@ async function decryptItems(backup, symmetricKey) {
     return await completeRestore(backup);
 }
 
+// IMPLEMENTATION: buildJsonExport from https://github.com/bitwarden/clients -> ./libs/tools/export/vault-export/vault-export-core/src/services/individual-vault-export.service.ts#L297
 async function completeRestore(backup) {
     const jsonDoc = {
         encrypted: false,
