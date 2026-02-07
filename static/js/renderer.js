@@ -99,6 +99,7 @@ window.ipcRenderer.on('settings', (event, data) => {
             $("#last_backup").text('Never');
         }
     } catch (error) {
+        log.error('[Renderer] Failed to load settings:', error);
         return;
     }
 });
@@ -115,6 +116,8 @@ window.ipcRenderer.on('version', (event, res) => {
             });
         }
     } catch (error) {
+        log.warn('[Renderer] Unable to load version information, displaying generic version info:', error);
+
         if (res.currentVersion) {
             $("#version").html(`Software version: v${res.currentVersion} (unknown)`);
         } else {
