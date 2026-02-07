@@ -57,15 +57,19 @@ async function checkForUpdates(window) {
 				title: 'Update Required',
 				message: `Update Required`,
 				detail: `A critical update has been released for Bitwarden Auto-Backup Manager. In order to continue with backups, you are required to update it.`,
-				buttons: ['Update Now', 'Cancel'],
+				buttons: ['Update Now', 'Cancel', 'Ignore (not recommended)'],
 				defaultId: 0,
 				cancelId: 1,
 				modal: true
 			}).then(async (response) => {
-				if (response.response !== 0) return process.exit();
-	
-				await shell.openExternal(res.downloadUrl);
-				process.exit();
+				if (response.response === 0) {
+					await shell.openExternal(res.downloadUrl);
+					process.exit();
+				} else if (response.response === 1) {
+					process.exit();
+				} else if (response.response === 2) {
+					log.warn('[Main Process] User ignored critical update, danger.');
+				}
 			}).catch((err) => {});
 		} else {
 			res.upToDate = compareVersions(res.currentVersion, '==', res.latestVersion);
