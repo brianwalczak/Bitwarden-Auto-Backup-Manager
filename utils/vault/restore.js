@@ -47,7 +47,7 @@ async function decryptItems(backup, symmetricKey) {
               try {
                 const data = await aesDecrypt(new EncCipher(parentObj[key].encryptedString), activeSymmetricKey.encKey, activeSymmetricKey.macKey);
                 parentObj[key] = toUtf8(data);
-              } catch(error) {};
+              } catch {/* skip it */};
             }
         });
 
@@ -72,7 +72,7 @@ async function decryptItems(backup, symmetricKey) {
               try {
                 const data = await aesDecrypt(new EncCipher(parentObj[key].encryptedString), activeSymmetricKey.encKey, activeSymmetricKey.macKey);
                 parentObj[key] = toUtf8(data);
-              } catch(error) {};
+              } catch {/* skip it */};
             }
         });
 

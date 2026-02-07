@@ -14,25 +14,37 @@ const { CipherWithIdExport } = require('../../libs/common/src/models/export/ciph
 // IMPLEMENTATION: getEncryptedExport from https://github.com/bitwarden/clients -> ./libs/tools/export/vault-export/vault-export-core/src/services/individual-vault-export.service.ts#L203
 async function exportVault(appData, uid = null) {
     const userData = await readFile(appData);
+    if (!userData) throw new Error('Unable to read user data from ' + appData + ' (Bitwarden Desktop). File may not exist or has insufficient permissions.');
+
     const userId = uid ?? userData.global_account_activeAccountId;
+    if (!userId) throw new Error('A user was not specified for vault export, and no default account is selected in Bitwarden Desktop.');
+
     const region = userData?.[`user_${userId}_environment_environment`]?.region?.trim() || 'US';
     const urls = userData?.[`user_${userId}_environment_environment`]?.urls || null;
 
     const refreshToken = await getCredential('Bitwarden', userId + '_refreshToken');
+    if (!refreshToken) throw new Error('Unable to retrieve refresh token for vault export from Bitwarden Desktop (are you logged in?).');
+
     const accessToken = await getAccessToken(refreshToken, region, urls);
+    if (!accessToken) throw new Error('Unable to authenticate vault export with refresh token from Bitwarden Desktop (are you logged in?).');
+
     const vault = await syncVault(accessToken, region, urls);
+    if (!vault || !vault.profile || !vault.profile.email || !vault.profile.key) throw new Error('Unable to sync vault data for export from Bitwarden Desktop (are you logged in?).');
+
     let ciphersData = {};
     let foldersData = {};
 
-    vault.ciphers.forEach((item) => {
+    vault?.ciphers?.forEach((item) => {
         const data = new CipherData(item);
+        if(!data || !data.id) return;
 
         ciphersData[data.id] = data;
     });
 
-    vault.folders.forEach((item) => {
+    vault?.folders?.forEach((item) => {
         const data = new FolderData(item);
-
+        if(!data || !data.id) return;
+        
         foldersData[data.id] = data;
     });
 
@@ -48,12 +60,14 @@ async function exportVault(appData, uid = null) {
     }
 
     for (const id in foldersData) {
-        folders.push(new Folder(foldersData[id]));
+        if (foldersData.hasOwnProperty(id)) {
+            folders.push(new Folder(foldersData[id]));
+        }
     }
 
-    ciphers = ciphers.filter((f) => f.deletedDate == null);
+    ciphers = ciphers.filter((f) => f?.deletedDate == null);
     const iterations = await getIterations(vault.profile.email, region, urls);
-    if(!iterations) return console.log('At this time, only PBKDF2 is supported.');
+    if (!iterations) throw new Error('Argon2id was detected as the key derivation function for your vault, which is currently unsupported.');
 
     const jsonDoc = {
         encrypted: true,

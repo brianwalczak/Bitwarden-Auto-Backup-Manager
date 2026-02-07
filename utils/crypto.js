@@ -65,15 +65,11 @@ async function pbkdf2(password, salt, iterations, length) {
         length: length,
     };
 
-    try {
-        const importedKey = await crypto.subtle.importKey('raw', password, importAlg, false, ['deriveKey']);
-        const derivedKey = await crypto.subtle.deriveKey(deriveAlg, importedKey, aesOptions, true, ['encrypt']);
-        const exportedKey = await crypto.subtle.exportKey('raw', derivedKey);
+    const importedKey = await crypto.subtle.importKey('raw', password, importAlg, false, ['deriveKey']);
+    const derivedKey = await crypto.subtle.deriveKey(deriveAlg, importedKey, aesOptions, true, ['encrypt']);
+    const exportedKey = await crypto.subtle.exportKey('raw', derivedKey);
 
-        return new ByteData(exportedKey);
-    } catch (err) {
-        return err;
-    }
+    return new ByteData(exportedKey);
 }
 
 // Simple function for HKDF expansion
@@ -193,25 +189,19 @@ async function aesDecrypt(cipher, encKey, macKey) {
       iv: cipher.iv.arr.buffer,
     }
 
-    try {
-      const checkMac = cipher.encType != encTypes.AesCbc256_B64
-      if (checkMac) {
-        if (!macKey) {
-          throw 'MAC key not provided.'
-        }
-        const dataForMac = buildDataForMac(cipher.iv.arr, cipher.ct.arr)
-        const macBuffer = await computeMac(dataForMac.buffer, macKey.arr.buffer)
-        const macsMatch = await macsEqual(cipher.mac.arr.buffer, macBuffer, macKey.arr.buffer)
-        if (!macsMatch) {
-          throw 'MAC check failed (likely incorrect password).'
-        }
-        const importedKey = await crypto.subtle.importKey('raw', encKey.arr.buffer, keyOptions, false, [
-          'decrypt',
-        ])
-        return crypto.subtle.decrypt(decOptions, importedKey, cipher.ct.arr.buffer)
-      }
-    } catch (err) {
-      throw err;
+    const checkMac = cipher.encType != encTypes.AesCbc256_B64
+
+    if (checkMac) {
+      if (!macKey) throw new Error('Decryption error: MAC key was not provided or is invalid.');
+
+      const dataForMac = buildDataForMac(cipher.iv.arr, cipher.ct.arr)
+      const macBuffer = await computeMac(dataForMac.buffer, macKey.arr.buffer)
+      const macsMatch = await macsEqual(cipher.mac.arr.buffer, macBuffer, macKey.arr.buffer)
+
+      if (!macsMatch) throw new Error('Decryption error: MAC check failed (likely incorrect password).');
+      const importedKey = await crypto.subtle.importKey('raw', encKey.arr.buffer, keyOptions, false, ['decrypt']);
+
+      return crypto.subtle.decrypt(decOptions, importedKey, cipher.ct.arr.buffer)
     }
 }
 
@@ -229,26 +219,10 @@ function resolveLegacyKey(key, encThing) {
 
 // Special decryption function for "key" value
 async function aesDecryptKey(data, iv, key) {
-  try {
-    const impKey = await crypto.subtle.importKey(
-      "raw",
-      key,
-      { name: "AES-CBC" },
-      false,
-      ["decrypt"]
-    );
+  const impKey = await crypto.subtle.importKey("raw", key, { name: "AES-CBC" }, false, ["decrypt"]);
+  const decryptedBuffer = await crypto.subtle.decrypt({ name: "AES-CBC", iv: iv }, impKey, data);
 
-    const decryptedBuffer = await crypto.subtle.decrypt(
-      { name: "AES-CBC", iv: iv },
-      impKey,
-      data
-    );
-
-    return new Uint8Array(decryptedBuffer);
-  } catch (error) {
-    console.error('Decryption failed:', error);
-    throw error;
-  }
+  return new Uint8Array(decryptedBuffer);
 }
 
 // Function which utilizes the encryption key and "key" value to create a new byte symmetric key

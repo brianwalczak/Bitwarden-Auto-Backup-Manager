@@ -4,6 +4,10 @@ function isObject(item) {
     return (item && typeof item === 'object' && !Array.isArray(item));
 }
 
+function joinUrl(base, path) {
+    return base.replace(/\/+$/, '') + '/' + path.replace(/^\/+/, '');
+}
+
 // Reads a JSON file and returns its content
 async function readFile(path) {
     try {
@@ -68,6 +72,7 @@ async function fileExists(filePath) {
 }
 
 module.exports = {
+    joinUrl,
     readFile,
     compareVersions,
     mergeDeep,

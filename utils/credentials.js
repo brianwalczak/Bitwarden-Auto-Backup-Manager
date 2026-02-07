@@ -3,26 +3,34 @@ const keytar = require('keytar');
 
 // Simple function written with keytar to find credential based on search query
 async function findCredential(service, code) {
-    const credentials = await keytar.findCredentials(service);
-    let result;
+    try {
+        const credentials = await keytar.findCredentials(service);
+        let result;
 
-    credentials.forEach((cred) => {
-        if(cred.account.includes(code)) {
-            result = cred.password;
-        }
-    });
+        credentials.forEach((cred) => {
+            if (cred.account.includes(code)) {
+                result = cred.password;
+            }
+        });
 
-    return result?.replaceAll('"', '') ?? null;
+        return result?.replaceAll('"', '') ?? null;
+    } catch {
+        return null;
+    }
 }
 
 // Simple function written with keytar to find exact credential
 async function getCredential(service, account) {
-    let password = await keytar.getPassword(service, account);
+    try {
+        let password = await keytar.getPassword(service, account);
 
-    // Windows stores credentials as UTF-16LE, so it may have some ugly null bytes
-    password = password?.replace(/\0/g, '')?.trim(); // remove null bytes and whitespace
+        // Windows stores credentials as UTF-16LE, so it may have some ugly null bytes
+        password = password?.replace(/\0/g, '')?.trim(); // remove null bytes and whitespace
 
-    return password?.replaceAll('"', '') ?? null; // remove any quotes
+        return password?.replaceAll('"', '') ?? null; // remove any quotes
+    } catch {
+        return null;
+    }
 }
 
 module.exports = {

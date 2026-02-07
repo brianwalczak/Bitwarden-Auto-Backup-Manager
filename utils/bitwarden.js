@@ -1,9 +1,9 @@
-function joinUrl(base, path) {
-    return base.replace(/\/+$/, '') + '/' + path.replace(/^\/+/, '');
-}
+const { joinUrl } = require('./utils');
 
 // Creates an API request to Bitwarden creating an access token
 async function getAccessToken(refresh_token, region, urls = null) {
+    if (!refresh_token) throw new Error('Bitwarden API: Refresh token is required to get access token (are you logged in?).');
+
     let domain = null;
     if(urls?.base) {
       if(urls?.identity) {
@@ -37,6 +37,8 @@ async function getAccessToken(refresh_token, region, urls = null) {
 
 // Creates an API request to Bitwarden to sync your vault
 async function syncVault(access_token, region, urls = null) {
+    if (!access_token) throw new Error('Bitwarden API: Access token is required to sync vault (are you logged in?).');
+
     let domain = null;
     if(urls?.base) {
       if(urls?.api) {
@@ -64,6 +66,8 @@ async function syncVault(access_token, region, urls = null) {
 
 // Function to get the user iteration count
 async function getIterations(email, region, urls = null) {
+    if (!email) throw new Error('Bitwarden API: An account email address is required to get decryption iteration count (are you logged in?).');
+
     let domain = null;
     if(urls?.base) {
       if(urls?.identity) {
