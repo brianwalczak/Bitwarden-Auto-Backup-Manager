@@ -1,4 +1,11 @@
 const { contextBridge, ipcRenderer, shell } = require('electron');
+const log = require('electron-log/renderer');
+
+contextBridge.exposeInMainWorld('log', {
+    info: (...args) => log.info(...args),
+    warn: (...args) => log.warn(...args),
+    error: (...args) => log.error(...args)
+});
 
 contextBridge.exposeInMainWorld('ipcRenderer', {
     send: (channel, data) => ipcRenderer.send(channel, data),

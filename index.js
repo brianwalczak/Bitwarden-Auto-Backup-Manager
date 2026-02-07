@@ -1,6 +1,7 @@
 const { app, BrowserWindow, Menu, Notification, Tray, ipcMain, shell, dialog } = require('electron');
 const { isDeepStrictEqual } = require('node:util');
 const prompt = require('electron-prompt');
+const log = require('electron-log');
 const fs = require('fs').promises;
 const path = require('path');
 const os = require('os');
@@ -16,6 +17,8 @@ let config = {
 	data: null, // User path to Bitwarden Desktop data.json file (will be defined later)
 	settings: path.join(app.getPath('userData'), 'settings.json') // User app configuration file
 };
+
+log.initialize();
 
 // The code below is used so that there's never more than one process of the app running
 // It also ensures that, at the same time, it's always running, whether in the foreground or as a background process
