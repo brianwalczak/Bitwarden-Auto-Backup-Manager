@@ -1,50 +1,50 @@
-const { getCredential } = require('../credentials.js');
-const { getAccessToken, syncVault, getIterations } = require('../bitwarden.js');
-const { readFile } = require('../utils.js');
+const { getCredential } = require("../credentials.js");
+const { getAccessToken, syncVault, getIterations } = require("../bitwarden.js");
+const { readFile } = require("../utils.js");
 
-const { CipherData } = require('../../libs/common/src/vault/models/data/cipher.data.js');
-const { Cipher } = require('../../libs/common/src/vault/models/domain/cipher.js');
+const { CipherData } = require("../../libs/common/src/vault/models/data/cipher.data.js");
+const { Cipher } = require("../../libs/common/src/vault/models/domain/cipher.js");
 
-const { FolderData } = require('../../libs/common/src/vault/models/data/folder.data.js');
-const { Folder } = require('../../libs/common/src/vault/models/domain/folder.js');
+const { FolderData } = require("../../libs/common/src/vault/models/data/folder.data.js");
+const { Folder } = require("../../libs/common/src/vault/models/domain/folder.js");
 
-const { FolderWithIdExport } = require('../../libs/common/src/models/export/folder-with-id.export.js');
-const { CipherWithIdExport } = require('../../libs/common/src/models/export/cipher-with-ids.export.js');
+const { FolderWithIdExport } = require("../../libs/common/src/models/export/folder-with-id.export.js");
+const { CipherWithIdExport } = require("../../libs/common/src/models/export/cipher-with-ids.export.js");
 
 // IMPLEMENTATION: getEncryptedExport from https://github.com/bitwarden/clients -> ./libs/tools/export/vault-export/vault-export-core/src/services/individual-vault-export.service.ts#L203
 async function exportVault(appData, uid = null) {
     const userData = await readFile(appData);
-    if (!userData) throw new Error('Unable to read user data from ' + appData + ' (Bitwarden Desktop). File may not exist or has insufficient permissions.');
+    if (!userData) throw new Error("Unable to read user data from " + appData + " (Bitwarden Desktop). File may not exist or has insufficient permissions.");
 
     const userId = uid ?? userData.global_account_activeAccountId;
-    if (!userId) throw new Error('A user was not specified for vault export, and no default account is selected in Bitwarden Desktop.');
+    if (!userId) throw new Error("A user was not specified for vault export, and no default account is selected in Bitwarden Desktop.");
 
-    const region = userData?.[`user_${userId}_environment_environment`]?.region?.trim() || 'US';
+    const region = userData?.[`user_${userId}_environment_environment`]?.region?.trim() || "US";
     const urls = userData?.[`user_${userId}_environment_environment`]?.urls || null;
 
-    const refreshToken = await getCredential('Bitwarden', userId + '_refreshToken');
-    if (!refreshToken) throw new Error('Unable to retrieve refresh token for vault export from Bitwarden Desktop (are you logged in?).');
+    const refreshToken = await getCredential("Bitwarden", userId + "_refreshToken");
+    if (!refreshToken) throw new Error("Unable to retrieve refresh token for vault export from Bitwarden Desktop (are you logged in?).");
 
     const accessToken = await getAccessToken(refreshToken, region, urls);
-    if (!accessToken) throw new Error('Unable to authenticate vault export with refresh token from Bitwarden Desktop (are you logged in?).');
+    if (!accessToken) throw new Error("Unable to authenticate vault export with refresh token from Bitwarden Desktop (are you logged in?).");
 
     const vault = await syncVault(accessToken, region, urls);
-    if (!vault || !vault.profile || !vault.profile.email || !vault.profile.key) throw new Error('Unable to sync vault data for export from Bitwarden Desktop (are you logged in?).');
+    if (!vault || !vault.profile || !vault.profile.email || !vault.profile.key) throw new Error("Unable to sync vault data for export from Bitwarden Desktop (are you logged in?).");
 
     let ciphersData = {};
     let foldersData = {};
 
     vault?.ciphers?.forEach((item) => {
         const data = new CipherData(item);
-        if(!data || !data.id) return;
+        if (!data || !data.id) return;
 
         ciphersData[data.id] = data;
     });
 
     vault?.folders?.forEach((item) => {
         const data = new FolderData(item);
-        if(!data || !data.id) return;
-        
+        if (!data || !data.id) return;
+
         foldersData[data.id] = data;
     });
 
@@ -52,7 +52,7 @@ async function exportVault(appData, uid = null) {
 
     let folders = [];
     let ciphers = [];
-    
+
     for (const id in ciphersData) {
         if (ciphersData.hasOwnProperty(id)) {
             ciphers.push(new Cipher(ciphersData[id], null));
@@ -67,7 +67,7 @@ async function exportVault(appData, uid = null) {
 
     ciphers = ciphers.filter((f) => f?.deletedDate == null);
     const iterations = await getIterations(vault.profile.email, region, urls);
-    if (!iterations) throw new Error('Argon2id was detected as the key derivation function for your vault, which is currently unsupported.');
+    if (!iterations) throw new Error("Argon2id was detected as the key derivation function for your vault, which is currently unsupported.");
 
     const jsonDoc = {
         encrypted: true,
@@ -82,17 +82,17 @@ async function exportVault(appData, uid = null) {
 
     folders.forEach((f) => {
         if (f.id == null) {
-          return;
+            return;
         }
-        
+
         const folder = new FolderWithIdExport();
         folder.build(f);
         jsonDoc.folders.push(folder);
     });
-  
+
     ciphers.forEach((c) => {
         if (c.organizationId != null) {
-          return;
+            return;
         }
 
         const cipher = new CipherWithIdExport();

@@ -1,5 +1,5 @@
 // If you're prompted by your operating system, such as macOS, to enter your password before viewing your Bitwarden credential, make sure to click "Always Allow" to prevent any annoyances while automatic backups are running
-const keytar = require('keytar');
+const keytar = require("keytar");
 
 // Simple function written with keytar to find credential based on search query
 async function findCredential(service, code) {
@@ -13,7 +13,7 @@ async function findCredential(service, code) {
             }
         });
 
-        return result?.replaceAll('"', '') ?? null;
+        return result?.replaceAll('"', "") ?? null;
     } catch {
         return null;
     }
@@ -25,9 +25,9 @@ async function getCredential(service, account) {
         let password = await keytar.getPassword(service, account);
 
         // Windows stores credentials as UTF-16LE, so it may have some ugly null bytes
-        password = password?.replace(/\0/g, '')?.trim(); // remove null bytes and whitespace
+        password = password?.replace(/\0/g, "")?.trim(); // remove null bytes and whitespace
 
-        return password?.replaceAll('"', '') ?? null; // remove any quotes
+        return password?.replaceAll('"', "") ?? null; // remove any quotes
     } catch {
         return null;
     }
@@ -35,5 +35,5 @@ async function getCredential(service, account) {
 
 module.exports = {
     findCredential,
-    getCredential
+    getCredential,
 };

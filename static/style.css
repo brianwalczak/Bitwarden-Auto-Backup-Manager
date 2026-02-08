@@ -1,16 +1,17 @@
 @font-face {
-    font-family: 'Roboto';
-    src: url('./fonts/Roboto.ttf') format('truetype');
+    font-family: "Roboto";
+    src: url("./fonts/Roboto.ttf") format("truetype");
     font-weight: 100 900;
 }
 
-html, body {
+html,
+body {
     margin: 0;
     padding: 0;
     width: 100%;
     height: 100%;
     background-color: #f3f6f9;
-    font-family: 'Roboto', "Helvetica Neue", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     overflow: hidden;
 }
 
@@ -97,7 +98,9 @@ button {
     white-space: nowrap;
     cursor: pointer;
     font-weight: 700;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
     box-sizing: border-box;
     border: 2px solid transparent;
 }
@@ -130,12 +133,14 @@ button:disabled {
 }
 
 /* Dropdown / Input Styling */
-.dropdown-container, .input-container {
+.dropdown-container,
+.input-container {
     position: relative;
     margin-bottom: 24px;
 }
 
-.dropdown-container .label, .input-container .label {
+.dropdown-container .label,
+.input-container .label {
     position: absolute;
     top: -10px;
     left: 12px;
@@ -148,7 +153,8 @@ button:disabled {
     pointer-events: none;
 }
 
-.dropdown, .input {
+.dropdown,
+.input {
     position: relative;
     border: 1px solid #ccc;
     border-radius: 6px;
@@ -171,11 +177,13 @@ button:disabled {
     box-shadow: none;
 }
 
-.dropdown:hover, .input:hover {
+.dropdown:hover,
+.input:hover {
     border-color: #888;
 }
 
-.dropdown .button, .input input {
+.dropdown .button,
+.input input {
     padding: 12px;
     font-size: 15px;
     display: flex;
@@ -245,7 +253,8 @@ button:disabled {
     border-bottom: none; /* Remove the border for the last result */
 }
 
-.results .result p, .results .result small {
+.results .result p,
+.results .result small {
     max-width: calc(100% - 70px);
     white-space: nowrap;
     overflow: hidden;
