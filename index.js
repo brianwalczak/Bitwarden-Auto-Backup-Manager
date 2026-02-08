@@ -8,6 +8,7 @@ const os = require("os");
 const { exportVault } = require("./utils/vault/export.js"); // Exports a user vault from their Bitwarden Desktop configuration
 const { restoreBackup } = require("./utils/vault/restore.js"); // Restores a user vault from their KDF iteration and master password (w/ PBKDF2 only)
 const { readFile, compareVersions, mergeDeep, fileExists } = require("./utils/utils.js");
+const base = (app.isPackaged ? process.resourcesPath : __dirname);
 
 let win = null; // Global variable to hold the window instance
 let tray = null; // Global variable to hold the tray instance
@@ -56,13 +57,13 @@ function prompt(config) {
             resizable: false,
             frame: false,
             webPreferences: {
-                preload: path.join(__dirname, "static", "components", "prompt", "preload.js"),
+                preload: path.join(base, "static", "components", "prompt", "preload.js"),
                 contextIsolation: true,
                 nodeIntegration: false,
             },
         });
 
-        modal.loadFile(path.join(__dirname, "static", "components", "prompt", "index.html"));
+        modal.loadFile(path.join(base, "static", "components", "prompt", "index.html"));
 
         modal.webContents.once("did-finish-load", () => {
             modal.webContents.send("init", config);
@@ -122,7 +123,7 @@ async function checkForUpdates(window) {
 // Creates the system tray app icon
 async function updateTray(statusText = null) {
     if (!tray) {
-        tray = new Tray(path.join(app.isPackaged ? process.resourcesPath : __dirname, "static", "icon.png"));
+        tray = new Tray(path.join(base, "static", "icon.png"));
         tray.setToolTip("Bitwarden Auto-Backup Manager");
 
         tray.on("click", () => {
@@ -424,11 +425,11 @@ async function createWindow() {
             nodeIntegration: false,
             contextIsolation: true,
             sandbox: false,
-            preload: path.join(__dirname, "static", "preload.js"),
+            preload: path.join(base, "static", "preload.js"),
         },
     });
 
-    win.loadFile("static/index.html");
+    win.loadFile(path.join(base, "static", "index.html"));
 
     if (process.platform === "win32") {
         app.setAppUserModelId(app.name); // Set the app name for notifications
