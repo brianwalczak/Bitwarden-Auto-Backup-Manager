@@ -123,6 +123,12 @@ button.secondary:hover {
     color: white;
 }
 
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 /* Dropdown / Input Styling */
 .dropdown-container, .input-container {
     position: relative;
