@@ -390,8 +390,10 @@ async function restoreHandler(data = null) {
         cancelLabel: "Cancel",
         confirmLabel: "Restore Vault",
     })
-        .then(async (password) => {
-            if (password === null) return;
+        .then(async (input) => {
+            if (input?.[0] === null) return;
+            const password = input[0];
+            
             if (!data) {
                 log.error("[Main Process] No data found to restore from the backup file.");
                 return dialog.showErrorBox("Restore Failed", "Your backup file appears to be unreadable or in an unsupported format. Please select a valid vault backup.");
