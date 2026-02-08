@@ -2,14 +2,7 @@ const { getCredential } = require("../credentials.js");
 const { getAccessToken, syncVault, getIterations } = require("../bitwarden.js");
 const { readFile } = require("../utils.js");
 
-const { CipherData } = require("../../libs/common/src/vault/models/data/cipher.data.js");
-const { Cipher } = require("../../libs/common/src/vault/models/domain/cipher.js");
-
-const { FolderData } = require("../../libs/common/src/vault/models/data/folder.data.js");
-const { Folder } = require("../../libs/common/src/vault/models/domain/folder.js");
-
-const { FolderWithIdExport } = require("../../libs/common/src/models/export/folder-with-id.export.js");
-const { CipherWithIdExport } = require("../../libs/common/src/models/export/cipher-with-ids.export.js");
+const { Cipher, CipherData, CipherWithIdExport, Folder, FolderData, FolderWithIdExport } = require("../../libs/common.cjs");
 
 // IMPLEMENTATION: getEncryptedExport from https://github.com/bitwarden/clients -> ./libs/tools/export/vault-export/vault-export-core/src/services/individual-vault-export.service.ts#L203
 async function exportVault(appData, uid = null) {

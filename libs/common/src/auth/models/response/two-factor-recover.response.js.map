@@ -1,1 +1,0 @@
-{"version":3,"file":"two-factor-recover.response.js","sourceRoot":"","sources":["../../../../../../../../libs/common/src/auth/models/response/two-factor-recover.response.ts"],"names":[],"mappings":";;;AAAA,0EAAsE;AAEtE,MAAa,wBAAyB,SAAQ,4BAAY;IAGxD,YAAY,QAAa;QACvB,KAAK,CAAC,QAAQ,CAAC,CAAC;QAChB,IAAI,CAAC,IAAI,GAAG,IAAI,CAAC,mBAAmB,CAAC,MAAM,CAAC,CAAC;IAC/C,CAAC;CACF;AAPD,4DAOC"}

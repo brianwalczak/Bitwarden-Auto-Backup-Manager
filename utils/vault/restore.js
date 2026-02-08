@@ -1,13 +1,5 @@
 const { toUtf8, ByteData, deriveMasterKey, stretchKey, aesDecrypt, EncCipher, SimpleSymmetricCryptoKey, decryptToBytes } = require("../crypto.js");
-
-const { Cipher } = require("../../libs/common/src/vault/models/domain/cipher.js");
-const { Folder } = require("../../libs/common/src/vault/models/domain/folder.js");
-
-const { FolderWithIdExport } = require("../../libs/common/src/models/export/folder-with-id.export.js");
-const { CipherWithIdExport } = require("../../libs/common/src/models/export/cipher-with-ids.export.js");
-
-const { SymmetricCryptoKey } = require("../../libs/common/src/platform/models/domain/symmetric-crypto-key.js");
-const { EncString } = require("../../libs/common/src/platform/models/domain/enc-string.js");
+const { Cipher, CipherWithIdExport, Folder, FolderWithIdExport, SymmetricCryptoKey, EncString } = require("../../libs/common.cjs");
 
 async function forEachEncString(cipher, callback) {
     // Helper function to traverse nested properties

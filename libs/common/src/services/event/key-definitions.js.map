@@ -1,1 +1,0 @@
-{"version":3,"file":"key-definitions.js","sourceRoot":"","sources":["../../../../../../../libs/common/src/services/event/key-definitions.ts"],"names":[],"mappings":";;;AAAA,6DAAyD;AACzD,gDAAgF;AAEnE,QAAA,gBAAgB,GAAG,yBAAiB,CAAC,KAAK,CACrD,6BAAqB,EACrB,QAAQ,EACR;IACE,YAAY,EAAE,CAAC,CAAC,EAAE,EAAE,CAAC,sBAAS,CAAC,QAAQ,CAAC,CAAC,CAAC;IAC1C,OAAO,EAAE,CAAC,QAAQ,CAAC;CACpB,CACF,CAAC"}

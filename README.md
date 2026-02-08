@@ -1,6 +1,6 @@
 <h1 align="center">Bitwarden Auto-Backup Manager</h1>
 
-<p align="center">A robust application that creates local, encrypted auto-backups for your Bitwarden vaults without using your master password.<br><br> <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg"></a></p>
+<p align="center">A robust application that creates local, encrypted auto-backups for your Bitwarden vaults without using your master password.<br><br> <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPLv3-blue.svg"></a></p>
 
 <img src="https://raw.githubusercontent.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/refs/heads/gh-pages/home.png" height="250" /> <img src="https://raw.githubusercontent.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/refs/heads/gh-pages/backups.png" height="250" /> <img src="https://raw.githubusercontent.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/refs/heads/gh-pages/settings.png" height="250" />
 
