@@ -56,13 +56,13 @@ function prompt(config) {
             resizable: false,
             frame: false,
             webPreferences: {
-                preload: path.join(__dirname, "static/components/prompt/preload.js"),
+                preload: path.join(__dirname, "src/components/prompt/preload.js"),
                 contextIsolation: true,
                 nodeIntegration: false,
             },
         });
 
-        modal.loadFile(path.join(__dirname, "static/components/prompt/index.html"));
+        modal.loadFile(path.join(__dirname, "src/components/prompt/index.html"));
 
         modal.webContents.once("did-finish-load", () => {
             modal.webContents.send("init", config);
@@ -428,11 +428,11 @@ async function createWindow() {
             nodeIntegration: false,
             contextIsolation: true,
             sandbox: false,
-            preload: path.join(__dirname, "static/preload.js"),
+            preload: path.join(__dirname, "src/preload.js"),
         },
     });
 
-    win.loadFile(path.join(__dirname, "static/index.html"));
+    win.loadFile(path.join(__dirname, "src/index.html"));
 
     if (process.platform === "win32") {
         app.setAppUserModelId(app.name); // Set the app name for notifications
