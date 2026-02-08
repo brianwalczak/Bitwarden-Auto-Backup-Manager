@@ -380,6 +380,16 @@ async function restoreHandler(data = null) {
         return dialog.showErrorBox("Restore Failed", `Unable to read your backup file. Make sure it exists and is a valid vault backup.\n\n${error.toString()}`);
     }
 
+    if (!data) {
+        log.error("[Main Process] No data found to restore from the backup file.");
+        return dialog.showErrorBox("Restore Failed", "Your backup file appears to be unreadable or in an unsupported format. Please select a valid vault backup.");
+    }
+
+    if (data.encrypted === false) {
+        log.warn("[Main Process] Unencrypted backup file detected, skipping decryption and warning.");
+        return dialog.showErrorBox("Restore Skipped", "The backup file you selected is already unencrypted.");
+    }
+
     prompt({
         title: "Restore from Backup",
         fields: [{ label: "Master Password", attributes: { type: "password", required: true } }],
@@ -389,11 +399,6 @@ async function restoreHandler(data = null) {
         .then(async (input) => {
             if (!input?.[0]) return;
             const password = input[0];
-
-            if (!data) {
-                log.error("[Main Process] No data found to restore from the backup file.");
-                return dialog.showErrorBox("Restore Failed", "Your backup file appears to be unreadable or in an unsupported format. Please select a valid vault backup.");
-            }
 
             const decryption = await decryptFile(data, password);
             if (!decryption.success) {
