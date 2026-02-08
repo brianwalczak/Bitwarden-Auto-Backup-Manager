@@ -122,11 +122,7 @@ async function checkForUpdates(window) {
 // Creates the system tray app icon
 async function updateTray(statusText = null) {
     if (!tray) {
-        tray = new Tray(
-            app.isPackaged
-                ? path.join(process.resourcesPath, 'icon.ico')
-                : path.join(__dirname, 'build', 'icon.ico')
-        );
+        tray = new Tray(app.isPackaged ? path.join(process.resourcesPath, "icon.ico") : path.join(__dirname, "build", "icon.ico"));
         tray.setToolTip("Bitwarden Auto-Backup Manager");
 
         tray.on("click", () => {
@@ -393,7 +389,7 @@ async function restoreHandler(data = null) {
         .then(async (input) => {
             if (!input?.[0]) return;
             const password = input[0];
-            
+
             if (!data) {
                 log.error("[Main Process] No data found to restore from the backup file.");
                 return dialog.showErrorBox("Restore Failed", "Your backup file appears to be unreadable or in an unsupported format. Please select a valid vault backup.");
