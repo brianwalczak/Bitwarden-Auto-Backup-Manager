@@ -9,6 +9,8 @@ function enableSubmit() {
 
 window.promptAPI.init((_, config) => {
     if (config.title) $("#header").text(config.title);
+    if (config.cancelLabel) $("#cancel").text(config.cancelLabel);
+    if (config.confirmLabel) $("#submit").text(config.confirmLabel);
 
     config.fields.forEach((field) => {
         const $div = $("<div>", { class: "input-container" });

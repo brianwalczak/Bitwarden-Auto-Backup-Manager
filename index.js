@@ -387,6 +387,8 @@ async function restoreHandler(data = null) {
     prompt({
         title: "Restore from Backup",
         fields: [{ label: "Master Password", attributes: { type: "password", required: true } }],
+        cancelLabel: "Cancel",
+        confirmLabel: "Restore Vault",
     })
         .then(async (password) => {
             if (password === null) return;
