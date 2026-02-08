@@ -31,7 +31,6 @@
   },
   "dependencies": {
     "electron-log": "^5.4.3",
-    "electron-prompt": "^1.7.0",
     "jquery": "^3.7.1",
     "keytar": "^7.9.0",
     "path": "^0.12.7",

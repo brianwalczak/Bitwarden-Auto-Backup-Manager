@@ -1,6 +1,5 @@
 const { app, BrowserWindow, Menu, Notification, Tray, ipcMain, shell, dialog } = require('electron');
 const { isDeepStrictEqual } = require('node:util');
-const prompt = require('electron-prompt');
 const log = require('electron-log');
 const fs = require('fs').promises;
 const path = require('path');
@@ -42,6 +41,42 @@ if (!app.requestSingleInstanceLock()) { // Check if this instance is the first i
 
     // Create the window when the app is ready
     app.whenReady().then(createWindow);
+}
+
+// Creates prompt window for input (used for master password input during restore)
+function prompt(config) {
+  return new Promise((resolve) => {
+    const modal = new BrowserWindow({
+      parent: win,
+      modal: true,
+      show: false,
+      width: 420,
+      height: 140 + ((config?.fields?.length || 1) * 65),
+      resizable: false,
+      frame: false,
+      webPreferences: {
+        preload: path.join(__dirname, 'static', 'components', 'prompt', 'preload.js'),
+        contextIsolation: true,
+        nodeIntegration: false
+      }
+    });
+
+    modal.loadFile(path.join(__dirname, 'static', 'components', 'prompt', 'index.html'));
+
+    modal.webContents.once('did-finish-load', () => {
+      modal.webContents.send('init', config);
+    });
+
+    const onceResponse = (_, data) => {
+      ipcMain.removeListener('response', onceResponse);
+	  
+      modal.destroy();
+      resolve(data);
+    };
+
+    ipcMain.once('response', onceResponse);
+    modal.once('ready-to-show', () => modal.show());
+  });
 }
 
 // Check for software updates via GitHub
@@ -342,11 +377,9 @@ async function restoreHandler(data = null) {
 	
 	prompt({
 		title: 'Restore from Backup',
-		label: 'Master Password',
-		type: 'input',
-		inputAttrs: {
-			type: 'password'
-		},
+		fields: [
+			{ label: 'Master Password', attributes: { type: 'password', required: true } }
+		]
 	}).then(async (password) => {
 		if (password === null) return;
 		if(!data) {
