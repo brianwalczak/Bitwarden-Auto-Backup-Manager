@@ -391,7 +391,7 @@ async function restoreHandler(data = null) {
         confirmLabel: "Restore Vault",
     })
         .then(async (input) => {
-            if (input?.[0] === null) return;
+            if (!input?.[0]) return;
             const password = input[0];
             
             if (!data) {
