@@ -1,5 +1,5 @@
 const { toUtf8, ByteData, deriveMasterKey, stretchKey, aesDecrypt, EncCipher, SimpleSymmetricCryptoKey, decryptToBytes } = require("../crypto.js");
-const { Cipher, CipherWithIdExport, Folder, FolderWithIdExport, SymmetricCryptoKey, EncString } = require("../../libs/common.cjs");
+const { CipherWithIdExport, FolderWithIdExport, SymmetricCryptoKey, EncString } = require("../../libs/common.cjs");
 
 async function forEachEncString(cipher, callback) {
     // Helper function to traverse nested properties
@@ -22,18 +22,51 @@ async function decryptItems(backup, symmetricKey) {
     backup.encrypted = false;
     delete backup.userData;
 
-    // Ciphers
-    for (const key in backup.items) {
-        const cipher = new Cipher(backup.items[key]);
+    // https://github.com/bitwarden/clients/blob/eab6e7ce804fa1c3c5c30f47f6f6165e109d7ee8/libs/importer/src/importers/bitwarden/bitwarden-encrypted-json-importer.ts#L150
+    for (const key in backup.folders) {
+        const folder = FolderWithIdExport.toDomain(backup.folders[key]);
+        if (!folder) continue;
 
+        // begin decryption for all encrypted strings in the folder
+        await forEachEncString(folder, async (key, parentObj) => {
+            if (parentObj[key] instanceof EncString) {
+                try {
+                    const data = await aesDecrypt(new EncCipher(parentObj[key].encryptedString), symmetricKey.encKey, symmetricKey.macKey);
+                    parentObj[key] = toUtf8(data);
+                } catch {
+                    /* skip it */
+                }
+            }
+        });
+
+        backup.folders[key] = folder;
+    }
+
+    // https://github.com/bitwarden/clients/blob/eab6e7ce804fa1c3c5c30f47f6f6165e109d7ee8/libs/importer/src/importers/bitwarden/bitwarden-encrypted-json-importer.ts#L106
+    for (const key in backup.items) {
+        const cipher = CipherWithIdExport.toDomain(backup.items[key]);
+
+        // reset ids in case they were set for some reason
+        cipher.id = null;
+        cipher.organizationId = this.organizationId;
+        cipher.collectionIds = null;
+
+        // make sure password history is limited
+        if (cipher.passwordHistory != null && cipher.passwordHistory.length > 5) {
+            cipher.passwordHistory = cipher.passwordHistory.slice(0, 5);
+        }
+
+        // begin decryption for all encrypted strings in the cipher
         await forEachEncString(cipher, async (key, parentObj) => {
-            let activeSymmetricKey = symmetricKey;
+            let activeSymmetricKey = symmetricKey; // by default, use the original symmetric key for decryption
 
             if (parentObj[key] instanceof EncString) {
+                // if a cipher key is present, use it for decryption instead
                 if (cipher["key"] != null) {
+                    // NEED TO FIX THIS, IT'S CURRENTLY RETURNING NULL FOR VAL ALL THE TIME
                     const val = await decryptToBytes(cipher["key"], new SymmetricCryptoKey(symmetricKey.key.arr));
 
-                    activeSymmetricKey = new SimpleSymmetricCryptoKey(val); // Update the used symmetric key to the new "key" value
+                    if(val) activeSymmetricKey = new SimpleSymmetricCryptoKey(val);
                 }
 
                 try {
@@ -46,33 +79,6 @@ async function decryptItems(backup, symmetricKey) {
         });
 
         backup.items[key] = cipher;
-    }
-
-    // Folders
-    for (const key in backup.folders) {
-        const folder = new Folder(backup.folders[key]);
-
-        await forEachEncString(folder, async (key, parentObj) => {
-            let activeSymmetricKey = symmetricKey;
-
-            if (parentObj[key] instanceof EncString) {
-                // We don't know if folders contain a special key, but let's continue anyway
-                if (folder["key"] != null) {
-                    const val = await decryptToBytes(folder["key"], new SymmetricCryptoKey(symmetricKey.key.arr));
-
-                    activeSymmetricKey = new SimpleSymmetricCryptoKey(val); // Update the used symmetric key to the new "key" value
-                }
-
-                try {
-                    const data = await aesDecrypt(new EncCipher(parentObj[key].encryptedString), activeSymmetricKey.encKey, activeSymmetricKey.macKey);
-                    parentObj[key] = toUtf8(data);
-                } catch {
-                    /* skip it */
-                }
-            }
-        });
-
-        backup.folders[key] = folder;
     }
 
     return await completeRestore(backup);

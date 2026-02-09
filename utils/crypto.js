@@ -215,15 +215,6 @@ async function aesDecrypt(cipher, encKey, macKey) {
     }
 }
 
-// Used to create key from the encryption key and "key" value
-function resolveLegacyKey(key, encThing) {
-    if (encThing.encryptionType === encTypes.AesCbc128_HmacSha256_B64 && key.encType === encTypes.AesCbc256_B64) {
-        return new SymmetricCryptoKey(key.key, encTypes.AesCbc128_HmacSha256_B64);
-    }
-
-    return key;
-}
-
 // Special decryption function for "key" value
 async function aesDecryptKey(data, iv, key) {
     const impKey = await crypto.subtle.importKey("raw", key, { name: "AES-CBC" }, false, ["decrypt"]);
@@ -241,8 +232,6 @@ async function decryptToBytes(encThing, key) {
     if (encThing == null) {
         throw new Error("No data was provided for decryption.");
     }
-
-    key = resolveLegacyKey(key, encThing);
 
     if (key.macKey != null && encThing.macBytes == null) {
         return null;
