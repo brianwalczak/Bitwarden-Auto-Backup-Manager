@@ -1,3 +1,4 @@
+// https://github.com/bitwarden/clients/blob/14a4359c873445d3641d34dbb31ce71d24d7e785/libs/common/src/key-management/crypto/services/encrypt.service.implementation.ts
 const crypto = require("crypto");
 
 // Reference to encryption types used (helps identify encryption type from b64)

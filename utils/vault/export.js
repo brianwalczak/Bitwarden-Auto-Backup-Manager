@@ -4,7 +4,6 @@ const { readFile } = require("../utils.js");
 
 const { Cipher, CipherData, CipherWithIdExport, Folder, FolderData, FolderWithIdExport } = require("../../libs/common.cjs");
 
-// IMPLEMENTATION: getEncryptedExport from https://github.com/bitwarden/clients -> ./libs/tools/export/vault-export/vault-export-core/src/services/individual-vault-export.service.ts#L203
 async function exportVault(appData, uid = null) {
     const userData = await readFile(appData);
     if (!userData) throw new Error("Unable to read user data from " + appData + " (Bitwarden Desktop). File may not exist or has insufficient permissions.");
@@ -24,6 +23,7 @@ async function exportVault(appData, uid = null) {
     const vault = await syncVault(accessToken, region, urls);
     if (!vault || !vault.profile || !vault.profile.email || !vault.profile.key) throw new Error("Unable to sync vault data for export from Bitwarden Desktop (are you logged in?).");
 
+    // https://github.com/bitwarden/clients/blob/eab6e7ce804fa1c3c5c30f47f6f6165e109d7ee8/libs/tools/export/vault-export/vault-export-core/src/services/individual-vault-export.service.ts#L203
     let ciphersData = {};
     let foldersData = {};
 
