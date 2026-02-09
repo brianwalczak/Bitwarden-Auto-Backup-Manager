@@ -63,7 +63,6 @@ async function decryptItems(backup, symmetricKey) {
             if (parentObj[key] instanceof EncString) {
                 // if a cipher key is present, use it for decryption instead
                 if (cipher["key"] != null) {
-                    // NEED TO FIX THIS, IT'S CURRENTLY RETURNING NULL FOR VAL ALL THE TIME
                     const val = await decryptToBytes(cipher["key"], new SymmetricCryptoKey(symmetricKey.key.arr));
 
                     if(val) activeSymmetricKey = new SimpleSymmetricCryptoKey(val);

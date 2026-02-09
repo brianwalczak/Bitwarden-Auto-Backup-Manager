@@ -226,7 +226,7 @@ async function aesDecryptKey(data, iv, key) {
 
 // Function which utilizes the encryption key and "key" value to create a new byte symmetric key
 async function decryptToBytes(encThing, key) {
-    if (key == null) {
+    if (key == null || key.innerKey == null) {
         throw new Error("No encryption key was provided for decryption.");
     }
 
@@ -234,20 +234,20 @@ async function decryptToBytes(encThing, key) {
         throw new Error("No data was provided for decryption.");
     }
 
-    if (key.macKey != null && encThing.macBytes == null) {
+    if (key.innerKey.authenticationKey != null && encThing.macBytes == null) {
         return null;
     }
 
-    if (key.encType !== encThing.encryptionType) {
+    if (key.innerKey.type !== encThing.encryptionType) {
         return null;
     }
 
-    if (key.macKey != null && encThing.macBytes != null) {
+    if (key.innerKey.authenticationKey != null && encThing.macBytes != null) {
         const macData = new Uint8Array(encThing.ivBytes.byteLength + encThing.dataBytes.byteLength);
         macData.set(new Uint8Array(encThing.ivBytes), 0);
         macData.set(new Uint8Array(encThing.dataBytes), encThing.ivBytes.byteLength);
 
-        const computedMac = await computeMac(macData, key.macKey);
+        const computedMac = await computeMac(macData, key.innerKey.authenticationKey);
         if (computedMac === null) {
             return null;
         }
@@ -262,7 +262,7 @@ async function decryptToBytes(encThing, key) {
     const result = await aesDecryptKey(
         encThing.dataBytes, // the data bytes of the "key" encryption key
         encThing.ivBytes, // the iv bytes of the "key" encryption key
-        key.encKey, // the original vault encryption key
+        key.innerKey.encryptionKey, // the original vault encryption key
     );
 
     return result ?? null;
