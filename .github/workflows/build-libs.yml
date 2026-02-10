@@ -1,0 +1,55 @@
+name: Bitwarden clients build
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_ref:
+        description: "Branch or tag of bitwarden/clients"
+        required: true
+        default: "main"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Clone bitwarden/clients
+        working-directory: libs
+        run: |
+          git clone --branch "${{ inputs.target_ref }}" \
+            https://github.com/bitwarden/clients.git \
+            clients
+
+      - name: Install dependencies
+        working-directory: libs/clients
+        run: npm ci
+
+      - name: Copy entry file
+        working-directory: libs/clients
+        run: |
+          cp ../entry.ts .
+
+      - name: Build common.cjs
+        working-directory: libs/clients
+        run: |
+          npx esbuild entry.ts \
+            --bundle \
+            --platform=node \
+            --format=cjs \
+            --packages=external \
+            --outfile=../common.cjs
+
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: common-cjs
+          path: libs/common.cjs
