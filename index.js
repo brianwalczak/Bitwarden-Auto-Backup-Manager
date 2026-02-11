@@ -17,6 +17,7 @@ let config = {
     settings: path.join(app.getPath("userData"), "settings.json"), // User app configuration file
 };
 
+// to-do: add automatic log deletion after ~7 days?
 log.initialize();
 
 ['log', 'info', 'warn', 'error', 'debug'].forEach(method => {
