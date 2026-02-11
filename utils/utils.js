@@ -71,10 +71,10 @@ async function fileExists(filePath) {
 }
 
 const sanitizeString = (str) => {
-  if (typeof str !== 'string') str = str.toString();
-  
-  const emailRegex = /(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))\b/gi;
-  return str.replaceAll(emailRegex, '[email redacted]');
+    if (typeof str !== "string") str = str.toString();
+
+    const emailRegex = /(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))\b/gi;
+    return str.replaceAll(emailRegex, "[email redacted]");
 };
 
 module.exports = {
@@ -83,5 +83,5 @@ module.exports = {
     compareVersions,
     mergeDeep,
     fileExists,
-    sanitizeString
+    sanitizeString,
 };

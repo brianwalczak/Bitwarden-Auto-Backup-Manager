@@ -20,16 +20,16 @@ let config = {
 // to-do: add automatic log deletion after ~7 days?
 log.initialize();
 
-['log', 'info', 'warn', 'error', 'debug'].forEach(method => {
-  const original = log[method]; // save the original
+["log", "info", "warn", "error", "debug"].forEach((method) => {
+    const original = log[method]; // save the original
 
-  log[method] = (...args) => {
-    if (args.length > 0) {
-      args[0] = sanitizeString(args[0]); // sanitize before logging
-    }
+    log[method] = (...args) => {
+        if (args.length > 0) {
+            args[0] = sanitizeString(args[0]); // sanitize before logging
+        }
 
-    original(...args);
-  };
+        original(...args);
+    };
 });
 
 // The code below is used so that there's never more than one process of the app running
@@ -532,13 +532,13 @@ async function createWindow() {
         const isUser = users.some((u) => u.uid === user.uid);
 
         if (!isUser) {
-            log.error(`[Main Process] User not found in Bitwarden Desktop app during backup attempt (user ${user.uid || 'unknown'}).`);
+            log.error(`[Main Process] User not found in Bitwarden Desktop app during backup attempt (user ${user.uid || "unknown"}).`);
             return dialog.showErrorBox("User Not Found", "This account was not found in Bitwarden Desktop. Make sure you've logged in with this account at least once.");
         }
 
         const backup = await performBackup(user.uid);
         if (!backup.success) {
-            log.error(`[Main Process] Error, backup failed for user (${user.uid || 'unknown'}):`, backup.reason);
+            log.error(`[Main Process] Error, backup failed for user (${user.uid || "unknown"}):`, backup.reason);
             return dialog.showErrorBox("Backup Failed", `Could not back up your vault. Ensure Bitwarden Desktop is installed and you have an active internet connection.\n\n${backup.reason}`);
         }
 
@@ -569,7 +569,7 @@ async function createWindow() {
         const isUser = users.find((u) => u.uid === user.uid);
 
         if (!isUser) {
-            log.error(`[Main Process] User not found in Bitwarden Desktop app during toggle attempt (user ${user.uid || 'unknown'}).`);
+            log.error(`[Main Process] User not found in Bitwarden Desktop app during toggle attempt (user ${user.uid || "unknown"}).`);
             return dialog.showErrorBox("User Not Found", "This account was not found in Bitwarden Desktop. Make sure you've logged in with this account at least once.");
         }
 

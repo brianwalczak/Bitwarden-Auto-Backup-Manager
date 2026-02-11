@@ -65,7 +65,7 @@ async function decryptItems(backup, symmetricKey) {
                 if (cipher["key"] != null) {
                     const val = await decryptToBytes(cipher["key"], new SymmetricCryptoKey(symmetricKey.key.arr));
 
-                    if(val) activeSymmetricKey = new SimpleSymmetricCryptoKey(val);
+                    if (val) activeSymmetricKey = new SimpleSymmetricCryptoKey(val);
                 }
 
                 try {
