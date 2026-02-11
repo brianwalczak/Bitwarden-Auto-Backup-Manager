@@ -7,7 +7,7 @@ const os = require("os");
 
 const { exportVault } = require("./utils/vault/export.js"); // Exports a user vault from their Bitwarden Desktop configuration
 const { restoreBackup } = require("./utils/vault/restore.js"); // Restores a user vault from their KDF iteration and master password (w/ PBKDF2 only)
-const { readFile, compareVersions, mergeDeep, fileExists } = require("./utils/utils.js");
+const { readFile, compareVersions, mergeDeep, fileExists, sanitizeString } = require("./utils/utils.js");
 
 let win = null; // Global variable to hold the window instance
 let tray = null; // Global variable to hold the tray instance
@@ -18,6 +18,18 @@ let config = {
 };
 
 log.initialize();
+
+['log', 'info', 'warn', 'error', 'debug'].forEach(method => {
+  const original = log[method]; // save the original
+
+  log[method] = (...args) => {
+    if (args.length > 0) {
+      args[0] = sanitizeString(args[0]); // sanitize before logging
+    }
+
+    original(...args);
+  };
+});
 
 // The code below is used so that there's never more than one process of the app running
 // It also ensures that, at the same time, it's always running, whether in the foreground or as a background process
@@ -519,13 +531,13 @@ async function createWindow() {
         const isUser = users.some((u) => u.uid === user.uid);
 
         if (!isUser) {
-            log.error("[Main Process] User not found in Bitwarden Desktop app during backup attempt:", user);
+            log.error(`[Main Process] User not found in Bitwarden Desktop app during backup attempt (user ${user.uid || 'unknown'}).`);
             return dialog.showErrorBox("User Not Found", "This account was not found in Bitwarden Desktop. Make sure you've logged in with this account at least once.");
         }
 
         const backup = await performBackup(user.uid);
         if (!backup.success) {
-            log.error("[Main Process] Error, backup failed for user:", user);
+            log.error(`[Main Process] Error, backup failed for user (${user.uid || 'unknown'}):`, backup.reason);
             return dialog.showErrorBox("Backup Failed", `Could not back up your vault. Ensure Bitwarden Desktop is installed and you have an active internet connection.\n\n${backup.reason}`);
         }
 
@@ -556,7 +568,7 @@ async function createWindow() {
         const isUser = users.find((u) => u.uid === user.uid);
 
         if (!isUser) {
-            log.error("[Main Process] User not found in Bitwarden Desktop app during toggle attempt:", user);
+            log.error(`[Main Process] User not found in Bitwarden Desktop app during toggle attempt (user ${user.uid || 'unknown'}).`);
             return dialog.showErrorBox("User Not Found", "This account was not found in Bitwarden Desktop. Make sure you've logged in with this account at least once.");
         }
 
