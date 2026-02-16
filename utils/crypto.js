@@ -4,12 +4,13 @@ const crypto = require("crypto");
 // Reference to encryption types used (helps identify encryption type from b64)
 const encTypes = {
     AesCbc256_B64: 0,
-    AesCbc128_HmacSha256_B64: 1,
+    // AesCbc128_HmacSha256_B64 (removed because unused)
     AesCbc256_HmacSha256_B64: 2,
     Rsa2048_OaepSha256_B64: 3,
     Rsa2048_OaepSha1_B64: 4,
     Rsa2048_OaepSha256_HmacSha256_B64: 5,
     Rsa2048_OaepSha1_HmacSha256_B64: 6,
+    CoseEncrypt0: 7,
 };
 
 // Creates an array buffer from a string
@@ -200,6 +201,8 @@ async function aesDecrypt(cipher, encKey, macKey) {
         iv: cipher.iv.arr.buffer,
     };
 
+    // Decryption of AesCbc256_B64 encrypted data is disabled.
+    // https://github.com/bitwarden/clients/blob/7ccf1263a0da002841115d3854a51cd0d37ced0c/libs/common/src/key-management/crypto/services/encrypt.service.implementation.ts#L45
     const checkMac = cipher.encType != encTypes.AesCbc256_B64;
 
     if (checkMac) {
