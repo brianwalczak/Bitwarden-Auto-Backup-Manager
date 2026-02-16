@@ -21,7 +21,10 @@ async function exportVault(appData, uid = null) {
     if (!accessToken) throw new Error("Unable to authenticate vault export with refresh token from Bitwarden Desktop (are you logged in?).");
 
     const vault = await syncVault(accessToken, region, urls);
-    if (!vault || !vault.profile || !vault.profile.email || !vault.profile.key) throw new Error("Unable to sync vault data for export from Bitwarden Desktop (are you logged in?).");
+    if (!vault) throw new Error("Unable to sync vault data for export from Bitwarden Desktop (are you logged in?).");
+    if (!vault.profile) throw new Error("Unable to fetch profile data from vault sync (are you logged in?).");
+    if (!vault.profile.email) throw new Error("Unable to fetch profile email from vault sync (are you logged in?).");
+    if (!vault.profile.key) throw new Error("Unable to fetch profile key from vault sync (are you logged in?).");
 
     // https://github.com/bitwarden/clients/blob/eab6e7ce804fa1c3c5c30f47f6f6165e109d7ee8/libs/tools/export/vault-export/vault-export-core/src/services/individual-vault-export.service.ts#L203
     let ciphersData = {};
