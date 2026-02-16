@@ -32,7 +32,8 @@ async function getAccessToken(refresh_token, region, urls = null) {
     });
 
     if (!req.ok) {
-        throw new Error(`Bitwarden API: Failed to get access token (are you logged in?). Status: ${req.status}`);
+        const text = await req.text();
+        throw new Error(`Bitwarden API: Failed to get access token (are you logged in?). Status: ${req.status}, Response: ${text}`);
     }
 
     const res = await req.json();
@@ -65,7 +66,8 @@ async function syncVault(access_token, region, urls = null) {
     });
 
     if (!req.ok) {
-        throw new Error(`Bitwarden API: Failed to sync vault (are you logged in?). Status: ${req.status}`);
+        const text = await req.text();
+        throw new Error(`Bitwarden API: Failed to sync vault (are you logged in?). Status: ${req.status}, Response: ${text}`);
     }
 
     const res = await req.json();
