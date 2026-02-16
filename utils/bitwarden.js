@@ -31,6 +31,10 @@ async function getAccessToken(refresh_token, region, urls = null) {
         }),
     });
 
+    if (!req.ok) {
+        throw new Error(`Bitwarden API: Failed to get access token (are you logged in?). Status: ${req.status}`);
+    }
+
     const res = await req.json();
     return res.access_token;
 }
@@ -59,6 +63,10 @@ async function syncVault(access_token, region, urls = null) {
             accept: "application/json",
         },
     });
+
+    if (!req.ok) {
+        throw new Error(`Bitwarden API: Failed to sync vault (are you logged in?). Status: ${req.status}`);
+    }
 
     const res = await req.json();
     return res;
