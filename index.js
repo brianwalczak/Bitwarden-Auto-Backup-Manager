@@ -146,7 +146,7 @@ async function updateTray(statusText = null) {
 
     const menu = Menu.buildFromTemplate([
         {
-            label: statusText ?? "⚠️ Last successful backup: Never",
+            label: statusText ?? "⚠️ Last automatic backup: Never",
             enabled: false,
         },
         { type: "separator" },
@@ -287,7 +287,7 @@ async function getSettings() {
             }
         }
 
-        statusCache = latestBackup > 0 ? `✅ Last successful backup: ${new Date(latestBackup).toISOString().replace("T", " ").replace("Z", "").split(".")[0]}` : "⚠️ Last successful backup: Never";
+        statusCache = latestBackup > 0 ? `✅ Last automatic backup: ${new Date(latestBackup).toISOString().replace("T", " ").replace("Z", "").split(".")[0]}` : "⚠️ Last automatic backup: Never";
 
         if (oldStatus !== statusCache) {
             updateTray(statusCache);
@@ -725,12 +725,13 @@ async function backgroundBackupCheck() {
 
         for (const user of settings.users) {
             if (user.nextDate && Date.now() >= user.nextDate) {
+                const backup = await performBackup(user.uid); // Perform and save the backup
+
                 user.nextDate = await getNextBackup(); // Schedule the next backup time
-                user.lastBackup = Date.now(); // Set the last backup time
+                if (backup.success) user.lastBackup = Date.now(); // Set the last backup time
                 await updateSettings(settings);
 
                 win.webContents.send("settings", settings); // Send the updated settings to the renderer process
-                await performBackup(user.uid); // Perform and save the backup
             }
 
             continue;
