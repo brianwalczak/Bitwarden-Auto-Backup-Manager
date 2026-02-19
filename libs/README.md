@@ -25,7 +25,7 @@ cd clients
 npm ci
 
 cp ../entry.ts .
-npx esbuild entry.ts --bundle --platform=node --format=cjs --outfile=../common.cjs --packages=external
+npx esbuild entry.ts --bundle --platform=node --format=cjs --outfile=../common.cjs --packages=external --minify
 ```
 
 > All rights to the original code are retained by Bitwarden, Inc. This project does not modify or redistribute the Bitwarden client itself, but utilizes data structuring logic and decryption systems strictly for proper vault formatting.

@@ -46,6 +46,7 @@ jobs:
                     --platform=node \
                     --format=cjs \
                     --packages=external \
+                    --minify \
                     --outfile=../common.cjs
 
             - name: Upload build output
