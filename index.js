@@ -12,6 +12,7 @@ import { readFile, compareVersions, mergeDeep, fileExists, sanitizeString } from
 let win = null; // Global variable to hold the window instance
 let tray = null; // Global variable to hold the tray instance
 let statusCache = null;
+let isQuitting = false;
 let config = {
     data: null, // User path to Bitwarden Desktop data.json file (will be defined later)
     settings: path.join(app.getPath("userData"), "settings.json"), // User app configuration file
@@ -507,8 +508,10 @@ async function createWindow() {
     Menu.setApplicationMenu(menu);
 
     win.on("close", (event) => {
-        event.preventDefault();
-        win.hide(); // Hide the window instead to keep it running in the background
+        if (!isQuitting) {
+            event.preventDefault();
+            win.hide(); // Hide the window instead to keep it running in the background
+        }
     });
 
     win.webContents.on("did-finish-load", async () => {
@@ -748,6 +751,10 @@ async function backgroundBackupCheck() {
 
 app.on("window-all-closed", () => {
     // Prevent the app from quitting on all windows closed, leave
+});
+
+app.on("before-quit", () => {
+    isQuitting = true;
 });
 
 // Run when the app is ready and started
