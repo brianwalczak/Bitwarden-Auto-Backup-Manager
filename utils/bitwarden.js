@@ -107,7 +107,7 @@ async function getIterations(email, region, urls = null) {
 
     const res = await req.json();
     const preloginResponse = new PreloginResponse(res);
-    
+
     if (preloginResponse.kdf === undefined || preloginResponse.kdfIterations === undefined || preloginResponse.kdf !== 0) return null;
     return preloginResponse.kdfIterations;
 }

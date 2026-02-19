@@ -72,7 +72,7 @@ function prompt(config) {
                 preload: path.join(import.meta.dirname, "renderer/components/prompt/preload.js"),
                 contextIsolation: true,
                 nodeIntegration: false,
-                sandbox: false
+                sandbox: false,
             },
         });
 
