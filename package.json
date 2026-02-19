@@ -27,7 +27,8 @@
         ]
     },
     "dependencies": {
-        "@bitwarden/sdk-internal": "0.2.0-main.527",
+        "@bitwarden/sdk-internal": "0.2.0-main.546",
+        "big-integer": "1.6.52",
         "electron-log": "^5.4.3",
         "jquery": "^3.7.1",
         "keytar": "^7.9.0",

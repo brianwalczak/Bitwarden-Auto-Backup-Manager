@@ -1,3 +1,4 @@
+const { SyncResponse, IdentityTokenResponse, PreloginResponse } = require("../libs/common.cjs");
 const { joinUrl } = require("./utils");
 
 // Creates an API request to Bitwarden creating an access token
@@ -37,7 +38,9 @@ async function getAccessToken(refresh_token, region, urls = null) {
     }
 
     const res = await req.json();
-    return res.access_token;
+    const tokenResponse = new IdentityTokenResponse(res);
+
+    return tokenResponse.accessToken;
 }
 
 // Creates an API request to Bitwarden to sync your vault
@@ -71,7 +74,9 @@ async function syncVault(access_token, region, urls = null) {
     }
 
     const res = await req.json();
-    return res;
+    const syncResponse = new SyncResponse(res);
+
+    return syncResponse;
 }
 
 // Function to get the user iteration count
@@ -99,10 +104,12 @@ async function getIterations(email, region, urls = null) {
         body: `{\"email\":\"${email}\"}`,
         method: "POST",
     });
-    const res = await req.json();
-    if (res.kdf === undefined || res.kdfIterations === undefined || res.kdf !== 0) return null;
 
-    return res.kdfIterations;
+    const res = await req.json();
+    const preloginResponse = new PreloginResponse(res);
+    
+    if (preloginResponse.kdf === undefined || preloginResponse.kdfIterations === undefined || preloginResponse.kdf !== 0) return null;
+    return preloginResponse.kdfIterations;
 }
 
 // Export all functions for use
