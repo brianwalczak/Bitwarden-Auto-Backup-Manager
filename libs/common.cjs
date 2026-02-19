@@ -8,11 +8,11 @@ var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
 };
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
+var __copyProps = (to, from2, except, desc) => {
+  if (from2 && typeof from2 === "object" || typeof from2 === "function") {
+    for (let key of __getOwnPropNames(from2))
       if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+        __defProp(to, key, { get: () => from2[key], enumerable: !(desc = __getOwnPropDesc(from2, key)) || desc.enumerable });
   }
   return to;
 };
@@ -44,7 +44,10 @@ __export(entry_exports, {
   Folder: () => Folder,
   FolderData: () => FolderData,
   FolderWithIdExport: () => FolderWithIdExport,
-  SymmetricCryptoKey: () => SymmetricCryptoKey
+  IdentityTokenResponse: () => IdentityTokenResponse,
+  PreloginResponse: () => PreloginResponse,
+  SymmetricCryptoKey: () => SymmetricCryptoKey,
+  SyncResponse: () => SyncResponse
 });
 module.exports = __toCommonJS(entry_exports);
 
@@ -789,19 +792,19 @@ var Utils = class _Utils {
     if (url == null || url.search == null || url.search === "") {
       return null;
     }
-    const map = /* @__PURE__ */ new Map();
+    const map9 = /* @__PURE__ */ new Map();
     const pairs = (url.search[0] === "?" ? url.search.substr(1) : url.search).split("&");
     pairs.forEach((pair) => {
       const parts = pair.split("=");
       if (parts.length < 1) {
         return;
       }
-      map.set(
+      map9.set(
         decodeURIComponent(parts[0]).toLowerCase(),
         parts[1] == null ? "" : decodeURIComponent(parts[1])
       );
     });
-    return map;
+    return map9;
   }
   static getSortFunction(i18nService, prop) {
     return (a, b) => {
@@ -894,14 +897,14 @@ var Utils = class _Utils {
    * @param map
    * @returns
    */
-  static mapToRecord(map) {
-    if (map == null) {
+  static mapToRecord(map9) {
+    if (map9 == null) {
       return null;
     }
-    if (!(map instanceof Map)) {
-      return map;
+    if (!(map9 instanceof Map)) {
+      return map9;
     }
-    return Object.fromEntries(map);
+    return Object.fromEntries(map9);
   }
   /**
    * Converts record to a Map<string, V> with the same data. Inverse of mapToRecord
@@ -911,13 +914,13 @@ var Utils = class _Utils {
    * @param record
    * @returns
    */
-  static recordToMap(record) {
-    if (record == null) {
+  static recordToMap(record2) {
+    if (record2 == null) {
       return null;
-    } else if (record instanceof Map) {
-      return record;
+    } else if (record2 instanceof Map) {
+      return record2;
     }
-    const entries = Object.entries(record);
+    const entries = Object.entries(record2);
     if (entries.length === 0) {
       return /* @__PURE__ */ new Map();
     }
@@ -1208,12 +1211,12 @@ function uuidAsString(uuid) {
 
 // libs/common/src/platform/models/domain/domain-base.ts
 var Domain = class {
-  buildDomainModel(domain, dataObj, map, notEncList = []) {
-    for (const prop in map) {
-      if (!map.hasOwnProperty(prop)) {
+  buildDomainModel(domain, dataObj, map9, notEncList = []) {
+    for (const prop in map9) {
+      if (!map9.hasOwnProperty(prop)) {
         continue;
       }
-      const objProp = dataObj[map[prop] || prop];
+      const objProp = dataObj[map9[prop] || prop];
       if (notEncList.indexOf(prop) > -1) {
         domain[prop] = objProp ? objProp : null;
       } else {
@@ -1221,12 +1224,12 @@ var Domain = class {
       }
     }
   }
-  buildDataModel(domain, dataObj, map, notEncStringList = []) {
-    for (const prop in map) {
-      if (!map.hasOwnProperty(prop)) {
+  buildDataModel(domain, dataObj, map9, notEncStringList = []) {
+    for (const prop in map9) {
+      if (!map9.hasOwnProperty(prop)) {
         continue;
       }
-      const objProp = domain[map[prop] || prop];
+      const objProp = domain[map9[prop] || prop];
       if (notEncStringList.indexOf(prop) > -1) {
         dataObj[prop] = objProp != null ? objProp : null;
       } else {
@@ -1382,6 +1385,12 @@ var AttachmentView = class _AttachmentView {
     }
     return 0;
   }
+  get hasDecryptionError() {
+    return this._hasDecryptionError || this.fileName === DECRYPT_ERROR;
+  }
+  set hasDecryptionError(value) {
+    this._hasDecryptionError = value;
+  }
   static fromJSON(obj) {
     const key = obj.key == null ? null : SymmetricCryptoKey.fromJSON(obj.key);
     let encryptedKey;
@@ -1412,7 +1421,7 @@ var AttachmentView = class _AttachmentView {
   /**
    * Converts the SDK AttachmentView to a AttachmentView.
    */
-  static fromSdkAttachmentView(obj) {
+  static fromSdkAttachmentView(obj, failure = false) {
     if (!obj) {
       return void 0;
     }
@@ -1424,6 +1433,7 @@ var AttachmentView = class _AttachmentView {
     view.fileName = obj.fileName;
     view.key = obj.decryptedKey ? SymmetricCryptoKey.fromString(obj.decryptedKey) : void 0;
     view.encryptedKey = obj.key ? new EncString(obj.key) : void 0;
+    view._hasDecryptionError = failure;
     return view;
   }
 };
@@ -2573,6 +2583,15 @@ var CipherView = class _CipherView {
     if (obj == null) {
       return void 0;
     }
+    const attachments = obj.attachments?.map((a) => AttachmentView.fromSdkAttachmentView(a)) ?? [];
+    if (obj.attachmentDecryptionFailures?.length) {
+      obj.attachmentDecryptionFailures.forEach((attachment) => {
+        const attachmentView = AttachmentView.fromSdkAttachmentView(attachment, true);
+        if (attachmentView) {
+          attachments.push(attachmentView);
+        }
+      });
+    }
     const cipherView = new _CipherView();
     cipherView.id = uuidAsString(obj.id);
     cipherView.organizationId = uuidAsString(obj.organizationId);
@@ -2586,7 +2605,7 @@ var CipherView = class _CipherView {
     cipherView.edit = obj.edit;
     cipherView.viewPassword = obj.viewPassword;
     cipherView.localData = fromSdkLocalData(obj.localData);
-    cipherView.attachments = obj.attachments?.map((a) => AttachmentView.fromSdkAttachmentView(a)) ?? [];
+    cipherView.attachments = attachments;
     cipherView.fields = obj.fields?.map((f) => FieldView.fromSdkFieldView(f)) ?? [];
     cipherView.passwordHistory = obj.passwordHistory?.map((ph) => PasswordHistoryView.fromSdkPasswordHistoryView(ph)) ?? [];
     cipherView.collectionIds = obj.collectionIds?.map((i) => uuidAsString(i)) ?? [];
@@ -2778,6 +2797,9 @@ var Attachment = class _Attachment extends Domain {
     if (this.key != null) {
       view.key = await this.decryptAttachmentKey(decryptionKey);
       view.encryptedKey = this.key;
+      if (!view.key) {
+        view.hasDecryptionError = true;
+      }
     }
     return view;
   }
@@ -4085,30 +4107,42 @@ var Cipher = class _Cipher extends Domain {
 // libs/common/src/vault/models/data/folder.data.ts
 var FolderData = class _FolderData {
   constructor(response) {
-    this.name = response?.name;
-    this.id = response?.id;
-    this.revisionDate = response?.revisionDate;
+    this.name = response.name ?? "";
+    this.id = response.id ?? "";
+    this.revisionDate = response.revisionDate ?? (/* @__PURE__ */ new Date()).toISOString();
   }
   static fromJSON(obj) {
-    return Object.assign(new _FolderData({}), obj);
+    if (obj == null) {
+      return null;
+    }
+    return new _FolderData({
+      id: obj.id,
+      name: obj.name,
+      revisionDate: obj.revisionDate
+    });
   }
 };
 
 // libs/common/src/vault/models/view/folder.view.ts
 var FolderView = class _FolderView {
   constructor(f) {
-    this.id = null;
-    this.name = null;
-    this.revisionDate = null;
+    this.id = "";
+    this.name = "";
     if (!f) {
+      this.revisionDate = /* @__PURE__ */ new Date();
       return;
     }
     this.id = f.id;
     this.revisionDate = f.revisionDate;
   }
   static fromJSON(obj) {
-    const revisionDate = obj.revisionDate == null ? null : new Date(obj.revisionDate);
-    return Object.assign(new _FolderView(), obj, { revisionDate });
+    const folderView = new _FolderView();
+    folderView.id = obj.id ?? "";
+    folderView.name = obj.name ?? "";
+    if (obj.revisionDate != null) {
+      folderView.revisionDate = new Date(obj.revisionDate);
+    }
+    return folderView;
   }
 };
 
@@ -4116,19 +4150,15 @@ var FolderView = class _FolderView {
 var Folder = class _Folder extends Domain {
   constructor(obj) {
     super();
+    this.id = "";
+    this.name = new EncString("");
+    this.revisionDate = /* @__PURE__ */ new Date();
     if (obj == null) {
       return;
     }
-    this.buildDomainModel(
-      this,
-      obj,
-      {
-        id: null,
-        name: null
-      },
-      ["id"]
-    );
-    this.revisionDate = obj.revisionDate != null ? new Date(obj.revisionDate) : null;
+    this.id = obj.id;
+    this.name = new EncString(obj.name);
+    this.revisionDate = new Date(obj.revisionDate);
   }
   decrypt(key) {
     return this.decryptObj(this, new FolderView(this), ["name"], key);
@@ -4146,8 +4176,14 @@ var Folder = class _Folder extends Domain {
     return folderView;
   }
   static fromJSON(obj) {
-    const revisionDate = obj.revisionDate == null ? null : new Date(obj.revisionDate);
-    return Object.assign(new _Folder(), obj, { name: EncString.fromJSON(obj.name), revisionDate });
+    if (obj == null) {
+      return null;
+    }
+    const folder = new _Folder();
+    folder.id = obj.id;
+    folder.name = EncString.fromJSON(obj.name);
+    folder.revisionDate = new Date(obj.revisionDate);
+    return folder;
   }
 };
 
@@ -4164,6 +4200,9 @@ function safeGetString(value) {
 
 // libs/common/src/models/export/folder.export.ts
 var FolderExport = class _FolderExport {
+  constructor() {
+    this.name = "";
+  }
   static template() {
     const req = new _FolderExport();
     req.name = "Folder name";
@@ -4174,12 +4213,12 @@ var FolderExport = class _FolderExport {
     return view;
   }
   static toDomain(req, domain = new Folder()) {
-    domain.name = req.name != null ? new EncString(req.name) : null;
+    domain.name = new EncString(req.name);
     return domain;
   }
   // Use build method instead of ctor so that we can control order of JSON stringify for pretty print
   build(o) {
-    this.name = safeGetString(o.name);
+    this.name = safeGetString(o.name ?? "") ?? "";
   }
 };
 
@@ -4808,6 +4847,1748 @@ var CipherWithIdExport = class extends CipherExport {
     this.collectionIds = o.collectionIds;
   }
 };
+
+// libs/common/src/admin-console/models/collections/collection.ts
+var CollectionTypes = {
+  SharedCollection: 0,
+  DefaultUserCollection: 1
+};
+
+// libs/common/src/admin-console/models/collections/collection.response.ts
+var CollectionResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    this.type = CollectionTypes.SharedCollection;
+    this.id = this.getResponseProperty("Id");
+    this.organizationId = this.getResponseProperty("OrganizationId");
+    this.name = this.getResponseProperty("Name");
+    this.externalId = this.getResponseProperty("ExternalId");
+    this.defaultUserCollectionEmail = this.getResponseProperty("DefaultUserCollectionEmail");
+    this.type = this.getResponseProperty("Type") ?? CollectionTypes.SharedCollection;
+  }
+};
+var CollectionDetailsResponse = class extends CollectionResponse {
+  constructor(response) {
+    super(response);
+    this.readOnly = this.getResponseProperty("ReadOnly") || false;
+    this.manage = this.getResponseProperty("Manage") || false;
+    this.hidePasswords = this.getResponseProperty("HidePasswords") || false;
+    this.assigned = this.getResponseProperty("object") == "collectionDetails";
+  }
+};
+
+// libs/common/src/admin-console/models/response/policy.response.ts
+var PolicyResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    this.id = this.getResponseProperty("Id");
+    this.organizationId = this.getResponseProperty("OrganizationId");
+    this.type = this.getResponseProperty("Type");
+    this.data = this.getResponseProperty("Data");
+    this.enabled = this.getResponseProperty("Enabled");
+    this.canToggleState = this.getResponseProperty("CanToggleState") ?? true;
+    this.revisionDate = this.getResponseProperty("RevisionDate");
+  }
+};
+
+// libs/common/src/auth/models/response/user-decryption-options/webauthn-prf-decryption-option.response.ts
+var WebAuthnPrfDecryptionOptionResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    const encPrivateKey = this.getResponseProperty("EncryptedPrivateKey");
+    if (encPrivateKey) {
+      this.encryptedPrivateKey = new EncString(encPrivateKey);
+    }
+    const encUserKey = this.getResponseProperty("EncryptedUserKey");
+    if (encUserKey) {
+      this.encryptedUserKey = new EncString(encUserKey);
+    }
+    this.credentialId = this.getResponseProperty("CredentialId");
+    this.transports = this.getResponseProperty("Transports") || [];
+  }
+};
+
+// libs/key-management/src/biometrics/biometric-state.service.ts
+var import_rxjs13 = require("rxjs");
+
+// libs/state/src/core/user-state.ts
+var activeMarker = Symbol("active");
+
+// libs/serialization/src/deserialization-helpers.ts
+function array(elementDeserializer) {
+  return (array2) => {
+    if (array2 == null) {
+      return null;
+    }
+    return array2.map((element) => elementDeserializer(element));
+  };
+}
+function record(valueDeserializer) {
+  return (jsonValue) => {
+    if (jsonValue == null) {
+      return null;
+    }
+    const output = {};
+    Object.entries(jsonValue).forEach(([key, value]) => {
+      output[key] = valueDeserializer(value);
+    });
+    return output;
+  };
+}
+
+// libs/state/src/core/key-definition.ts
+var KeyDefinition = class _KeyDefinition {
+  /**
+   * Creates a new instance of a KeyDefinition
+   * @param stateDefinition The state definition for which this key belongs to.
+   * @param key The name of the key, this should be unique per domain.
+   * @param options A set of options to customize the behavior of {@link KeyDefinition}. All options are required.
+   * @param options.deserializer A function to use to safely convert your type from json to your expected type.
+   *   Your data may be serialized/deserialized at any time and this needs callback needs to be able to faithfully re-initialize
+   *   from the JSON object representation of your type.
+   */
+  constructor(stateDefinition, key, options) {
+    this.stateDefinition = stateDefinition;
+    this.key = key;
+    this.options = options;
+    if (options.deserializer == null) {
+      throw new Error(`'deserializer' is a required property on key ${this.errorKeyName}`);
+    }
+    if (options.cleanupDelayMs < 0) {
+      throw new Error(
+        `'cleanupDelayMs' must be greater than or equal to 0. Value of ${options.cleanupDelayMs} passed to key ${this.errorKeyName} `
+      );
+    }
+    const { enableUpdateLogging = false, enableRetrievalLogging = false } = options.debug ?? {};
+    this.debug = {
+      enableUpdateLogging,
+      enableRetrievalLogging
+    };
+  }
+  /**
+   * Gets the deserializer configured for this {@link KeyDefinition}
+   */
+  get deserializer() {
+    return this.options.deserializer;
+  }
+  /**
+   * Gets the number of milliseconds to wait before cleaning up the state after the last subscriber has unsubscribed.
+   */
+  get cleanupDelayMs() {
+    return this.options.cleanupDelayMs < 0 ? 0 : this.options.cleanupDelayMs ?? 1e3;
+  }
+  /**
+   * Creates a {@link KeyDefinition} for state that is an array.
+   * @param stateDefinition The state definition to be added to the KeyDefinition
+   * @param key The key to be added to the KeyDefinition
+   * @param options The options to customize the final {@link KeyDefinition}.
+   * @returns A {@link KeyDefinition} initialized for arrays, the options run
+   * the deserializer on the provided options for each element of an array.
+   *
+   * @example
+   * ```typescript
+   * const MY_KEY = KeyDefinition.array<MyArrayElement>(MY_STATE, "key", {
+   *   deserializer: (myJsonElement) => convertToElement(myJsonElement),
+   * });
+   * ```
+   */
+  static array(stateDefinition, key, options) {
+    return new _KeyDefinition(stateDefinition, key, {
+      ...options,
+      deserializer: array((e) => options.deserializer(e))
+    });
+  }
+  /**
+   * Creates a {@link KeyDefinition} for state that is a record.
+   * @param stateDefinition The state definition to be added to the KeyDefinition
+   * @param key The key to be added to the KeyDefinition
+   * @param options The options to customize the final {@link KeyDefinition}.
+   * @returns A {@link KeyDefinition} that contains a serializer that will run the provided deserializer for each
+   * value in a record and returns every key as a string.
+   *
+   * @example
+   * ```typescript
+   * const MY_KEY = KeyDefinition.record<MyRecordValue>(MY_STATE, "key", {
+   *   deserializer: (myJsonValue) => convertToValue(myJsonValue),
+   * });
+   * ```
+   */
+  static record(stateDefinition, key, options) {
+    return new _KeyDefinition(stateDefinition, key, {
+      ...options,
+      deserializer: record((v) => options.deserializer(v))
+    });
+  }
+  get fullName() {
+    return `${this.stateDefinition.name}_${this.key}`;
+  }
+  get errorKeyName() {
+    return `${this.stateDefinition.name} > ${this.key}`;
+  }
+};
+
+// libs/guid/src/index.ts
+var guidRegex = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
+function isGuid(id) {
+  return guidRegex.test(id);
+}
+
+// libs/state/src/core/user-key-definition.ts
+var USER_KEY_DEFINITION_MARKER = Symbol("UserKeyDefinition");
+var _a;
+_a = USER_KEY_DEFINITION_MARKER;
+var _UserKeyDefinition = class _UserKeyDefinition {
+  constructor(stateDefinition, key, options) {
+    this.stateDefinition = stateDefinition;
+    this.key = key;
+    this.options = options;
+    this[_a] = true;
+    if (options.deserializer == null) {
+      throw new Error(`'deserializer' is a required property on key ${this.errorKeyName}`);
+    }
+    if (options.cleanupDelayMs < 0) {
+      throw new Error(
+        `'cleanupDelayMs' must be greater than or equal to 0. Value of ${options.cleanupDelayMs} passed to key ${this.errorKeyName} `
+      );
+    }
+    this.clearOn = Array.from(new Set(options.clearOn));
+    const { enableUpdateLogging = false, enableRetrievalLogging = false } = options.debug ?? {};
+    this.debug = {
+      enableUpdateLogging,
+      enableRetrievalLogging
+    };
+  }
+  /**
+   * Gets the deserializer configured for this {@link KeyDefinition}
+   */
+  get deserializer() {
+    return this.options.deserializer;
+  }
+  /**
+   * Gets the number of milliseconds to wait before cleaning up the state after the last subscriber has unsubscribed.
+   */
+  get cleanupDelayMs() {
+    return this.options.cleanupDelayMs < 0 ? 0 : this.options.cleanupDelayMs ?? 1e3;
+  }
+  /**
+   * Creates a {@link UserKeyDefinition} for state that is an array.
+   * @param stateDefinition The state definition to be added to the UserKeyDefinition
+   * @param key The key to be added to the KeyDefinition
+   * @param options The options to customize the final {@link UserKeyDefinition}.
+   * @returns A {@link UserKeyDefinition} initialized for arrays, the options run
+   * the deserializer on the provided options for each element of an array
+   * **unless that array is null, in which case it will return an empty list.**
+   *
+   * @example
+   * ```typescript
+   * const MY_KEY = UserKeyDefinition.array<MyArrayElement>(MY_STATE, "key", {
+   *   deserializer: (myJsonElement) => convertToElement(myJsonElement),
+   * });
+   * ```
+   */
+  static array(stateDefinition, key, options) {
+    return new _UserKeyDefinition(stateDefinition, key, {
+      ...options,
+      deserializer: array((e) => options.deserializer(e))
+    });
+  }
+  /**
+   * Creates a {@link UserKeyDefinition} for state that is a record.
+   * @param stateDefinition The state definition to be added to the UserKeyDefinition
+   * @param key The key to be added to the KeyDefinition
+   * @param options The options to customize the final {@link UserKeyDefinition}.
+   * @returns A {@link UserKeyDefinition} that contains a serializer that will run the provided deserializer for each
+   * value in a record and returns every key as a string **unless that record is null, in which case it will return an record.**
+   *
+   * @example
+   * ```typescript
+   * const MY_KEY = UserKeyDefinition.record<MyRecordValue>(MY_STATE, "key", {
+   *   deserializer: (myJsonValue) => convertToValue(myJsonValue),
+   * });
+   * ```
+   */
+  static record(stateDefinition, key, options) {
+    return new _UserKeyDefinition(stateDefinition, key, {
+      ...options,
+      deserializer: record((v) => options.deserializer(v))
+    });
+  }
+  get fullName() {
+    return `${this.stateDefinition.name}_${this.key}`;
+  }
+  buildKey(userId) {
+    if (!isGuid(userId)) {
+      throw new Error(
+        `You cannot build a user key without a valid UserId, building for key ${this.fullName}`
+      );
+    }
+    return `user_${userId}_${this.stateDefinition.name}_${this.key}`;
+  }
+  get errorKeyName() {
+    return `${this.stateDefinition.name} > ${this.key}`;
+  }
+};
+var UserKeyDefinition = _UserKeyDefinition;
+
+// libs/state/src/core/state-definition.ts
+var StateDefinition = class {
+  /**
+   * Creates a new instance of {@link StateDefinition}, the creation of which is owned by the platform team.
+   * @param name The name of the state, this needs to be unique from all other {@link StateDefinition}'s.
+   * @param defaultStorageLocation The location of where this state should be stored.
+   */
+  constructor(name, defaultStorageLocation, storageLocationOverrides) {
+    this.name = name;
+    this.defaultStorageLocation = defaultStorageLocation;
+    this.storageLocationOverrides = storageLocationOverrides ?? {};
+  }
+};
+
+// libs/state/src/core/state-definitions.ts
+var ORGANIZATIONS_DISK = new StateDefinition("organizations", "disk");
+var POLICIES_DISK = new StateDefinition("policies", "disk");
+var PROVIDERS_DISK = new StateDefinition("providers", "disk");
+var ORGANIZATION_MANAGEMENT_PREFERENCES_DISK = new StateDefinition(
+  "organizationManagementPreferences",
+  "disk",
+  {
+    web: "disk-local"
+  }
+);
+var DELETE_MANAGED_USER_WARNING = new StateDefinition(
+  "showDeleteManagedUserWarning",
+  "disk",
+  {
+    web: "disk-local"
+  }
+);
+var AUTO_CONFIRM = new StateDefinition("autoConfirm", "disk", { web: "disk-local" });
+var BILLING_DISK = new StateDefinition("billing", "disk");
+var BILLING_MEMORY = new StateDefinition("billing", "memory");
+var ACCOUNT_DISK = new StateDefinition("account", "disk");
+var ACCOUNT_MEMORY = new StateDefinition("account", "memory");
+var AUTH_REQUEST_DISK_LOCAL = new StateDefinition("authRequestLocal", "disk", {
+  web: "disk-local"
+});
+var AVATAR_DISK = new StateDefinition("avatar", "disk", { web: "disk-local" });
+var DEVICE_TRUST_DISK_LOCAL = new StateDefinition("deviceTrust", "disk", {
+  web: "disk-local",
+  browser: "disk-backup-local-storage"
+});
+var LOGIN_EMAIL_DISK = new StateDefinition("loginEmail", "disk", {
+  web: "disk-local"
+});
+var LOGIN_EMAIL_MEMORY = new StateDefinition("loginEmail", "memory");
+var LOGIN_STRATEGY_MEMORY = new StateDefinition("loginStrategy", "memory");
+var MASTER_PASSWORD_DISK = new StateDefinition("masterPassword", "disk");
+var MASTER_PASSWORD_MEMORY = new StateDefinition("masterPassword", "memory");
+var MASTER_PASSWORD_UNLOCK_DISK = new StateDefinition("masterPasswordUnlock", "disk");
+var ROUTER_DISK = new StateDefinition("router", "disk");
+var SSO_DISK = new StateDefinition("ssoLogin", "disk");
+var SSO_DISK_LOCAL = new StateDefinition("ssoLoginLocal", "disk", { web: "disk-local" });
+var TOKEN_DISK = new StateDefinition("token", "disk");
+var TOKEN_DISK_LOCAL = new StateDefinition("tokenDiskLocal", "disk", {
+  web: "disk-local"
+});
+var TOKEN_MEMORY = new StateDefinition("token", "memory");
+var SEND_ACCESS_DISK = new StateDefinition("sendAccess", "disk");
+var TWO_FACTOR_MEMORY = new StateDefinition("twoFactor", "memory");
+var USER_DECRYPTION_OPTIONS_DISK = new StateDefinition("userDecryptionOptions", "disk");
+var ORGANIZATION_INVITE_DISK = new StateDefinition("organizationInvite", "disk");
+var VAULT_TIMEOUT_SETTINGS_DISK_LOCAL = new StateDefinition(
+  "vaultTimeoutSettings",
+  "disk",
+  {
+    web: "disk-local"
+  }
+);
+var BADGE_SETTINGS_DISK = new StateDefinition("badgeSettings", "disk");
+var USER_NOTIFICATION_SETTINGS_DISK = new StateDefinition(
+  "userNotificationSettings",
+  "disk"
+);
+var DOMAIN_SETTINGS_DISK = new StateDefinition("domainSettings", "disk");
+var AUTOFILL_SETTINGS_DISK = new StateDefinition("autofillSettings", "disk");
+var AUTOFILL_SETTINGS_DISK_LOCAL = new StateDefinition("autofillSettingsLocal", "disk", {
+  web: "disk-local"
+});
+var AUTOTYPE_SETTINGS_DISK = new StateDefinition("autotypeSettings", "disk");
+var NEW_WEB_LAYOUT_BANNER_DISK = new StateDefinition("newWebLayoutBanner", "disk", {
+  web: "disk-local"
+});
+var BIT_SIDE_NAV_DISK = new StateDefinition("bitSideNav", "disk");
+var PHISHING_DETECTION_DISK = new StateDefinition("phishingDetection", "disk");
+var APPLICATION_ID_DISK = new StateDefinition("applicationId", "disk", {
+  web: "disk-local"
+});
+var CLEAR_EVENT_DISK = new StateDefinition("clearEvent", "disk");
+var CONFIG_DISK = new StateDefinition("config", "disk", {
+  web: "disk-local"
+});
+var DESKTOP_SETTINGS_DISK = new StateDefinition("desktopSettings", "disk");
+var ENVIRONMENT_DISK = new StateDefinition("environment", "disk");
+var ENVIRONMENT_MEMORY = new StateDefinition("environment", "memory");
+var IPC_MEMORY = new StateDefinition("interProcessCommunication", "memory");
+var POPUP_VIEW_MEMORY = new StateDefinition("popupView", "memory", {
+  browser: "memory-large-object"
+});
+var SYNC_DISK = new StateDefinition("sync", "disk", { web: "memory" });
+var THEMING_DISK = new StateDefinition("theming", "disk", { web: "disk-local" });
+var TRANSLATION_DISK = new StateDefinition("translation", "disk", { web: "disk-local" });
+var ANIMATION_DISK = new StateDefinition("animation", "disk");
+var TASK_SCHEDULER_DISK = new StateDefinition("taskScheduler", "disk");
+var EXTENSION_INITIAL_INSTALL_DISK = new StateDefinition(
+  "extensionInitialInstall",
+  "disk"
+);
+var WEB_PUSH_SUBSCRIPTION = new StateDefinition("webPushSubscription", "disk", {
+  web: "disk-local"
+});
+var POPUP_STYLE_DISK = new StateDefinition("popupStyle", "disk");
+var SM_ONBOARDING_DISK = new StateDefinition("smOnboarding", "disk", {
+  web: "disk-local"
+});
+var EXTENSION_DISK = new StateDefinition("extension", "disk");
+var GENERATOR_DISK = new StateDefinition("generator", "disk");
+var GENERATOR_MEMORY = new StateDefinition("generator", "memory");
+var BROWSER_SEND_MEMORY = new StateDefinition("sendBrowser", "memory");
+var EVENT_COLLECTION_DISK = new StateDefinition("eventCollection", "disk");
+var SEND_DISK = new StateDefinition("encryptedSend", "disk", {
+  web: "memory"
+});
+var SEND_MEMORY = new StateDefinition("decryptedSend", "memory", {
+  browser: "memory-large-object"
+});
+var SEND_ACCESS_AUTH_MEMORY = new StateDefinition("sendAccessAuth", "memory");
+var COLLECTION_DISK = new StateDefinition("collection", "disk", {
+  web: "memory"
+});
+var COLLECTION_MEMORY = new StateDefinition("decryptedCollections", "memory", {
+  browser: "memory-large-object"
+});
+var FOLDER_DISK = new StateDefinition("folder", "disk", { web: "memory" });
+var FOLDER_MEMORY = new StateDefinition("decryptedFolders", "memory", {
+  browser: "memory-large-object"
+});
+var VAULT_FILTER_DISK = new StateDefinition("vaultFilter", "disk", {
+  web: "disk-local"
+});
+var VAULT_ONBOARDING = new StateDefinition("vaultOnboarding", "disk", {
+  web: "disk-local"
+});
+var VAULT_SETTINGS_DISK = new StateDefinition("vaultSettings", "disk", {
+  web: "disk-local"
+});
+var VAULT_BROWSER_MEMORY = new StateDefinition("vaultBrowser", "memory", {
+  browser: "memory-large-object"
+});
+var VAULT_SEARCH_MEMORY = new StateDefinition("vaultSearch", "memory", {
+  browser: "memory-large-object"
+});
+var CIPHERS_DISK = new StateDefinition("ciphers", "disk", { web: "memory" });
+var CIPHERS_DISK_LOCAL = new StateDefinition("ciphersLocal", "disk", {
+  web: "disk-local"
+});
+var CIPHERS_MEMORY = new StateDefinition("ciphersMemory", "memory", {
+  browser: "memory-large-object"
+});
+var BANNERS_DISMISSED_DISK = new StateDefinition("bannersDismissed", "disk");
+var VAULT_APPEARANCE = new StateDefinition("vaultAppearance", "disk");
+var SECURITY_TASKS_DISK = new StateDefinition("securityTasks", "disk");
+var AT_RISK_PASSWORDS_PAGE_DISK = new StateDefinition("atRiskPasswordsPage", "disk");
+var NOTIFICATION_DISK = new StateDefinition("notifications", "disk");
+var NUDGES_DISK = new StateDefinition("nudges", "disk", { web: "disk-local" });
+var SETUP_EXTENSION_DISMISSED_DISK = new StateDefinition(
+  "setupExtensionDismissed",
+  "disk",
+  {
+    web: "disk-local"
+  }
+);
+var VAULT_BROWSER_INTRO_CAROUSEL = new StateDefinition(
+  "vaultBrowserIntroCarousel",
+  "disk"
+);
+var VAULT_AT_RISK_PASSWORDS_MEMORY = new StateDefinition("vaultAtRiskPasswords", "memory");
+var BIOMETRIC_SETTINGS_DISK = new StateDefinition("biometricSettings", "disk");
+var ENCRYPTED_MIGRATION_DISK = new StateDefinition("encryptedMigration", "disk");
+var PIN_DISK = new StateDefinition("pinUnlock", "disk");
+var PIN_MEMORY = new StateDefinition("pinUnlock", "memory");
+var CRYPTO_DISK = new StateDefinition("crypto", "disk");
+var CRYPTO_MEMORY = new StateDefinition("crypto", "memory");
+var KDF_CONFIG_DISK = new StateDefinition("kdfConfig", "disk");
+var KEY_CONNECTOR_DISK = new StateDefinition("keyConnector", "disk");
+
+// libs/state/src/state-migrations/migrator.ts
+var IRREVERSIBLE = new Error("Irreversible migration");
+
+// libs/state-internal/src/default-active-user-state.provider.ts
+var import_rxjs5 = require("rxjs");
+
+// libs/state-internal/src/default-active-user-state.ts
+var import_rxjs4 = require("rxjs");
+
+// libs/state-internal/src/default-derived-state.ts
+var import_rxjs6 = require("rxjs");
+
+// libs/state-internal/src/state-base.ts
+var import_rxjs7 = require("rxjs");
+
+// libs/state-internal/src/default-single-user-state.ts
+var import_rxjs8 = require("rxjs");
+
+// libs/state-internal/src/default-state.provider.ts
+var import_rxjs9 = require("rxjs");
+
+// libs/state-internal/src/inline-derived-state.ts
+var import_rxjs10 = require("rxjs");
+
+// libs/state-internal/src/legacy/default-state.service.ts
+var import_rxjs11 = require("rxjs");
+
+// libs/state-internal/src/default-state-event-registrar.service.ts
+var STATE_LOCK_EVENT = KeyDefinition.array(CLEAR_EVENT_DISK, "lock", {
+  deserializer: (e) => e
+});
+var STATE_LOGOUT_EVENT = KeyDefinition.array(CLEAR_EVENT_DISK, "logout", {
+  deserializer: (e) => e
+});
+
+// libs/state-internal/src/default-state-event-runner.service.ts
+var import_rxjs12 = require("rxjs");
+
+// libs/key-management/src/biometrics/biometric.state.ts
+var BIOMETRIC_UNLOCK_ENABLED = new UserKeyDefinition(
+  BIOMETRIC_SETTINGS_DISK,
+  "biometricUnlockEnabled",
+  {
+    deserializer: (obj) => obj,
+    clearOn: []
+  }
+);
+var ENCRYPTED_CLIENT_KEY_HALF = new UserKeyDefinition(
+  BIOMETRIC_SETTINGS_DISK,
+  "clientKeyHalf",
+  {
+    deserializer: (obj) => obj,
+    clearOn: ["logout"]
+  }
+);
+var PROMPT_CANCELLED = KeyDefinition.record(
+  BIOMETRIC_SETTINGS_DISK,
+  "promptCancelled",
+  {
+    deserializer: (obj) => obj
+  }
+);
+var PROMPT_AUTOMATICALLY = new UserKeyDefinition(
+  BIOMETRIC_SETTINGS_DISK,
+  "promptAutomatically",
+  {
+    deserializer: (obj) => obj,
+    clearOn: []
+  }
+);
+var FINGERPRINT_VALIDATED = new KeyDefinition(
+  BIOMETRIC_SETTINGS_DISK,
+  "fingerprintValidated",
+  {
+    deserializer: (obj) => obj
+  }
+);
+var LAST_PROCESS_RELOAD = new KeyDefinition(
+  BIOMETRIC_SETTINGS_DISK,
+  "lastProcessReload",
+  {
+    deserializer: (obj) => new Date(obj)
+  }
+);
+
+// libs/key-management/src/key.service.ts
+var bigInt = __toESM(require("big-integer"));
+var import_rxjs21 = require("rxjs");
+
+// libs/common/src/key-management/vault-timeout/services/vault-timeout-settings.service.ts
+var import_rxjs16 = require("rxjs");
+
+// libs/common/src/admin-console/services/policy/default-policy.service.ts
+var import_rxjs15 = require("rxjs");
+
+// libs/common/src/auth/services/account.service.ts
+var import_rxjs14 = require("rxjs");
+var ACCOUNT_ACCOUNTS = KeyDefinition.record(
+  ACCOUNT_DISK,
+  "accounts",
+  {
+    deserializer: (accountInfo) => ({
+      ...accountInfo,
+      creationDate: accountInfo.creationDate ? new Date(accountInfo.creationDate) : void 0
+    })
+  }
+);
+var ACCOUNT_ACTIVE_ACCOUNT_ID = new KeyDefinition(ACCOUNT_DISK, "activeAccountId", {
+  deserializer: (id) => id
+});
+var ACCOUNT_ACTIVITY = KeyDefinition.record(ACCOUNT_DISK, "activity", {
+  deserializer: (activity) => new Date(activity)
+});
+var ACCOUNT_VERIFY_NEW_DEVICE_LOGIN = new UserKeyDefinition(
+  ACCOUNT_DISK,
+  "verifyNewDeviceLogin",
+  {
+    deserializer: (verifyDevices) => verifyDevices,
+    clearOn: ["logout"]
+  }
+);
+var getUserId = (0, import_rxjs14.map)((account) => {
+  if (account == null) {
+    throw new Error("Null or undefined account");
+  }
+  return account.id;
+});
+var getOptionalUserId = (0, import_rxjs14.map)(
+  (account) => account?.id ?? null
+);
+
+// libs/common/src/admin-console/services/policy/policy-state.ts
+var POLICIES = UserKeyDefinition.record(POLICIES_DISK, "policies", {
+  deserializer: (policyData) => policyData,
+  clearOn: ["logout"]
+});
+
+// libs/common/src/admin-console/services/policy/default-policy.service.ts
+var getFirstPolicy = (0, import_rxjs15.map)((policies) => {
+  return policies.at(0) ?? void 0;
+});
+
+// libs/common/src/key-management/vault-timeout/services/vault-timeout-settings.state.ts
+var VAULT_TIMEOUT_ACTION = new UserKeyDefinition(
+  VAULT_TIMEOUT_SETTINGS_DISK_LOCAL,
+  "vaultTimeoutAction",
+  {
+    deserializer: (vaultTimeoutAction) => vaultTimeoutAction,
+    clearOn: []
+    // persisted on logout
+  }
+);
+var VAULT_TIMEOUT = new UserKeyDefinition(
+  VAULT_TIMEOUT_SETTINGS_DISK_LOCAL,
+  "vaultTimeout",
+  {
+    deserializer: (vaultTimeout) => vaultTimeout,
+    clearOn: []
+    // persisted on logout
+  }
+);
+
+// libs/common/src/key-management/vault-timeout/services/vault-timeout.service.ts
+var import_rxjs19 = require("rxjs");
+
+// libs/common/src/platform/scheduling/task-scheduler.service.ts
+var import_rxjs17 = require("rxjs");
+
+// libs/common/src/platform/scheduling/default-task-scheduler.service.ts
+var import_rxjs18 = require("rxjs");
+
+// libs/common/src/platform/misc/convert-values.ts
+var import_rxjs20 = require("rxjs");
+
+// libs/common/src/platform/services/key-state/org-keys.state.ts
+var USER_ENCRYPTED_ORGANIZATION_KEYS = UserKeyDefinition.record(CRYPTO_DISK, "organizationKeys", {
+  deserializer: (obj) => obj,
+  clearOn: ["logout"]
+});
+
+// libs/common/src/platform/services/key-state/provider-keys.state.ts
+var USER_ENCRYPTED_PROVIDER_KEYS = UserKeyDefinition.record(
+  CRYPTO_DISK,
+  "providerKeys",
+  {
+    deserializer: (obj) => obj,
+    clearOn: ["logout"]
+  }
+);
+
+// libs/common/src/platform/services/key-state/user-key.state.ts
+var USER_EVER_HAD_USER_KEY = new UserKeyDefinition(
+  CRYPTO_DISK,
+  "everHadUserKey",
+  {
+    deserializer: (obj) => obj,
+    clearOn: ["logout"]
+  }
+);
+var USER_KEY = new UserKeyDefinition(CRYPTO_MEMORY, "userKey", {
+  deserializer: (obj) => SymmetricCryptoKey.fromJSON(obj),
+  clearOn: ["logout", "lock"]
+});
+
+// libs/common/src/platform/misc/range-with-default.ts
+var RangeWithDefault = class {
+  constructor(min, max, defaultValue) {
+    this.min = min;
+    this.max = max;
+    this.defaultValue = defaultValue;
+    if (min > max) {
+      throw new Error(`${min} is greater than ${max}.`);
+    }
+    if (this.inRange(defaultValue) === false) {
+      throw new Error("Default value is not in range.");
+    }
+  }
+  inRange(value) {
+    return value >= this.min && value <= this.max;
+  }
+};
+
+// libs/key-management/src/models/kdf-config.ts
+var PBKDF2KdfConfig = class _PBKDF2KdfConfig {
+  constructor(iterations) {
+    this.kdfType = 0 /* PBKDF2_SHA256 */;
+    this.iterations = iterations ?? _PBKDF2KdfConfig.ITERATIONS.defaultValue;
+  }
+  static {
+    this.ITERATIONS = new RangeWithDefault(6e5, 2e6, 6e5);
+  }
+  static {
+    this.PRELOGIN_ITERATIONS_MIN = 5e3;
+  }
+  /**
+   * Validates the PBKDF2 KDF configuration for updating the KDF config.
+   * A Valid PBKDF2 KDF configuration has KDF iterations between the 600_000 and 2_000_000.
+   */
+  validateKdfConfigForSetting() {
+    if (!_PBKDF2KdfConfig.ITERATIONS.inRange(this.iterations)) {
+      throw new Error(
+        `PBKDF2 iterations must be between ${_PBKDF2KdfConfig.ITERATIONS.min} and ${_PBKDF2KdfConfig.ITERATIONS.max}`
+      );
+    }
+  }
+  /**
+   * Validates the PBKDF2 KDF configuration for pre-login.
+   * A Valid PBKDF2 KDF configuration has KDF iterations between the 5000 and 2_000_000.
+   */
+  validateKdfConfigForPrelogin() {
+    if (_PBKDF2KdfConfig.PRELOGIN_ITERATIONS_MIN > this.iterations) {
+      throw new Error(
+        `PBKDF2 iterations must be at least ${_PBKDF2KdfConfig.PRELOGIN_ITERATIONS_MIN}, but was ${this.iterations}; possible pre-login downgrade attack detected.`
+      );
+    }
+  }
+  static fromJSON(json) {
+    return new _PBKDF2KdfConfig(json.iterations);
+  }
+  toSdkConfig() {
+    return {
+      pBKDF2: {
+        iterations: this.iterations
+      }
+    };
+  }
+};
+var Argon2KdfConfig = class _Argon2KdfConfig {
+  constructor(iterations, memory, parallelism) {
+    this.kdfType = 1 /* Argon2id */;
+    this.iterations = iterations ?? _Argon2KdfConfig.ITERATIONS.defaultValue;
+    this.memory = memory ?? _Argon2KdfConfig.MEMORY.defaultValue;
+    this.parallelism = parallelism ?? _Argon2KdfConfig.PARALLELISM.defaultValue;
+  }
+  static {
+    this.MEMORY = new RangeWithDefault(16, 1024, 64);
+  }
+  static {
+    this.PARALLELISM = new RangeWithDefault(1, 16, 4);
+  }
+  static {
+    this.ITERATIONS = new RangeWithDefault(2, 10, 3);
+  }
+  static {
+    this.PRELOGIN_MEMORY_MIN = 16;
+  }
+  static {
+    this.PRELOGIN_PARALLELISM_MIN = 1;
+  }
+  static {
+    this.PRELOGIN_ITERATIONS_MIN = 2;
+  }
+  /**
+   * Validates the Argon2 KDF configuration for updating the KDF config.
+   * A Valid Argon2 KDF configuration has iterations between 2 and 10, memory between 16mb and 1024mb, and parallelism between 1 and 16.
+   */
+  validateKdfConfigForSetting() {
+    if (!_Argon2KdfConfig.ITERATIONS.inRange(this.iterations)) {
+      throw new Error(
+        `Argon2 iterations must be between ${_Argon2KdfConfig.ITERATIONS.min} and ${_Argon2KdfConfig.ITERATIONS.max}`
+      );
+    }
+    if (!_Argon2KdfConfig.MEMORY.inRange(this.memory)) {
+      throw new Error(
+        `Argon2 memory must be between ${_Argon2KdfConfig.MEMORY.min} MiB and ${_Argon2KdfConfig.MEMORY.max} MiB`
+      );
+    }
+    if (!_Argon2KdfConfig.PARALLELISM.inRange(this.parallelism)) {
+      throw new Error(
+        `Argon2 parallelism must be between ${_Argon2KdfConfig.PARALLELISM.min} and ${_Argon2KdfConfig.PARALLELISM.max}.`
+      );
+    }
+  }
+  /**
+   * Validates the Argon2 KDF configuration for pre-login.
+   */
+  validateKdfConfigForPrelogin() {
+    if (_Argon2KdfConfig.PRELOGIN_ITERATIONS_MIN > this.iterations) {
+      throw new Error(
+        `Argon2 iterations must be at least ${_Argon2KdfConfig.PRELOGIN_ITERATIONS_MIN}, but was ${this.iterations}; possible pre-login downgrade attack detected.`
+      );
+    }
+    if (_Argon2KdfConfig.PRELOGIN_MEMORY_MIN > this.memory) {
+      throw new Error(
+        `Argon2 memory must be at least ${_Argon2KdfConfig.PRELOGIN_MEMORY_MIN} MiB, but was ${this.memory} MiB; possible pre-login downgrade attack detected.`
+      );
+    }
+    if (_Argon2KdfConfig.PRELOGIN_PARALLELISM_MIN > this.parallelism) {
+      throw new Error(
+        `Argon2 parallelism must be at least ${_Argon2KdfConfig.PRELOGIN_PARALLELISM_MIN}, but was ${this.parallelism}; possible pre-login downgrade attack detected.`
+      );
+    }
+  }
+  static fromJSON(json) {
+    return new _Argon2KdfConfig(json.iterations, json.memory, json.parallelism);
+  }
+  toSdkConfig() {
+    return {
+      argon2id: {
+        iterations: this.iterations,
+        memory: this.memory,
+        parallelism: this.parallelism
+      }
+    };
+  }
+};
+function fromSdkKdfConfig(sdkKdf) {
+  if ("pBKDF2" in sdkKdf) {
+    return new PBKDF2KdfConfig(sdkKdf.pBKDF2.iterations);
+  } else if ("argon2id" in sdkKdf) {
+    return new Argon2KdfConfig(
+      sdkKdf.argon2id.iterations,
+      sdkKdf.argon2id.memory,
+      sdkKdf.argon2id.parallelism
+    );
+  } else {
+    throw new Error("Unsupported KDF type");
+  }
+}
+var DEFAULT_KDF_CONFIG = new PBKDF2KdfConfig(PBKDF2KdfConfig.ITERATIONS.defaultValue);
+
+// libs/key-management/src/kdf-config.service.ts
+var import_rxjs22 = require("rxjs");
+var KDF_CONFIG = new UserKeyDefinition(KDF_CONFIG_DISK, "kdfConfig", {
+  deserializer: (kdfConfig) => {
+    if (kdfConfig == null) {
+      return null;
+    }
+    return kdfConfig.kdfType === 0 /* PBKDF2_SHA256 */ ? PBKDF2KdfConfig.fromJSON(kdfConfig) : Argon2KdfConfig.fromJSON(kdfConfig);
+  },
+  clearOn: ["logout"]
+});
+
+// libs/key-management/src/user-asymmetric-key-regeneration/services/default-user-asymmetric-key-regeneration.service.ts
+var import_rxjs23 = require("rxjs");
+
+// libs/common/src/key-management/models/response/kdf-config.response.ts
+var KdfConfigResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    const kdfType = this.getResponseProperty("KdfType");
+    if (kdfType == null || typeof kdfType !== "number") {
+      throw new Error("KDF config response does not contain a valid KDF type");
+    }
+    this.kdfType = kdfType;
+    const iterations = this.getResponseProperty("Iterations");
+    if (iterations == null || typeof iterations !== "number") {
+      throw new Error("KDF config response does not contain a valid number of iterations");
+    }
+    this.iterations = iterations;
+    if (this.kdfType === 1 /* Argon2id */) {
+      const memory = this.getResponseProperty("Memory");
+      if (memory == null || typeof memory !== "number") {
+        throw new Error("KDF config response does not contain a valid memory size for Argon2id");
+      }
+      const parallelism = this.getResponseProperty("Parallelism");
+      if (parallelism == null || typeof parallelism !== "number") {
+        throw new Error("KDF config response does not contain a valid parallelism for Argon2id");
+      }
+      this.memory = memory;
+      this.parallelism = parallelism;
+    }
+  }
+  toKdfConfig() {
+    switch (this.kdfType) {
+      case 1 /* Argon2id */:
+        return new Argon2KdfConfig(this.iterations, this.memory, this.parallelism);
+      case 0 /* PBKDF2_SHA256 */:
+        return new PBKDF2KdfConfig(this.iterations);
+    }
+  }
+};
+
+// libs/common/src/key-management/master-password/types/master-password.types.ts
+var MasterPasswordUnlockData = class _MasterPasswordUnlockData {
+  constructor(salt, kdf, masterKeyWrappedUserKey) {
+    this.salt = salt;
+    this.kdf = kdf;
+    this.masterKeyWrappedUserKey = masterKeyWrappedUserKey;
+  }
+  static fromSdk(sdkData) {
+    return new _MasterPasswordUnlockData(
+      sdkData.salt,
+      fromSdkKdfConfig(sdkData.kdf),
+      sdkData.masterKeyWrappedUserKey
+    );
+  }
+  toJSON() {
+    return {
+      salt: this.salt,
+      kdf: this.kdf,
+      masterKeyWrappedUserKey: this.masterKeyWrappedUserKey
+    };
+  }
+  static fromJSON(obj) {
+    if (obj == null) {
+      return null;
+    }
+    return new _MasterPasswordUnlockData(
+      obj.salt,
+      obj.kdf.kdfType === 0 /* PBKDF2_SHA256 */ ? PBKDF2KdfConfig.fromJSON(obj.kdf) : Argon2KdfConfig.fromJSON(obj.kdf),
+      obj.masterKeyWrappedUserKey
+    );
+  }
+};
+
+// libs/common/src/key-management/master-password/models/response/master-password-unlock.response.ts
+var MasterPasswordUnlockResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    const salt = this.getResponseProperty("Salt");
+    if (salt == null || typeof salt !== "string") {
+      throw new Error("MasterPasswordUnlockResponse does not contain a valid salt");
+    }
+    this.salt = salt;
+    this.kdf = new KdfConfigResponse(this.getResponseProperty("Kdf"));
+    const masterKeyWrappedUserKey = this.getResponseProperty("MasterKeyEncryptedUserKey");
+    if (masterKeyWrappedUserKey == null || typeof masterKeyWrappedUserKey !== "string") {
+      throw new Error(
+        "MasterPasswordUnlockResponse does not contain a valid master key encrypted user key"
+      );
+    }
+    this.masterKeyWrappedUserKey = masterKeyWrappedUserKey;
+  }
+  toMasterPasswordUnlockData() {
+    return new MasterPasswordUnlockData(
+      this.salt,
+      this.kdf.toKdfConfig(),
+      this.masterKeyWrappedUserKey
+    );
+  }
+};
+
+// libs/common/src/key-management/models/response/user-decryption.response.ts
+var UserDecryptionResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    const masterPasswordUnlock = this.getResponseProperty("MasterPasswordUnlock");
+    if (masterPasswordUnlock != null && typeof masterPasswordUnlock === "object") {
+      this.masterPasswordUnlock = new MasterPasswordUnlockResponse(masterPasswordUnlock);
+    }
+    const webAuthnPrfOptions = this.getResponseProperty("WebAuthnPrfOptions");
+    if (webAuthnPrfOptions != null && Array.isArray(webAuthnPrfOptions)) {
+      this.webAuthnPrfOptions = webAuthnPrfOptions.map(
+        (option) => new WebAuthnPrfDecryptionOptionResponse(option)
+      );
+    }
+  }
+};
+
+// libs/common/src/models/response/global-domain.response.ts
+var GlobalDomainResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    this.type = this.getResponseProperty("Type");
+    this.domains = this.getResponseProperty("Domains");
+    this.excluded = this.getResponseProperty("Excluded");
+  }
+};
+
+// libs/common/src/models/response/domains.response.ts
+var DomainsResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    this.globalEquivalentDomains = [];
+    this.equivalentDomains = this.getResponseProperty("EquivalentDomains");
+    const globalEquivalentDomains = this.getResponseProperty("GlobalEquivalentDomains");
+    if (globalEquivalentDomains != null) {
+      this.globalEquivalentDomains = globalEquivalentDomains.map(
+        (d) => new GlobalDomainResponse(d)
+      );
+    } else {
+      this.globalEquivalentDomains = [];
+    }
+  }
+};
+
+// libs/common/src/key-management/security-state/response/security-state.response.ts
+var SecurityStateResponse = class {
+  constructor(response) {
+    this.securityState = null;
+    if (typeof response !== "object" || response == null) {
+      throw new TypeError("Response must be an object");
+    }
+    if (!("securityState" in response) || !(typeof response.securityState === "string")) {
+      throw new TypeError("Response must contain a valid securityState");
+    }
+    this.securityState = response.securityState;
+  }
+};
+
+// libs/common/src/key-management/keys/response/public-key-encryption-key-pair.response.ts
+var PublicKeyEncryptionKeyPairResponse = class {
+  constructor(response) {
+    this.signedPublicKey = null;
+    if (typeof response !== "object" || response == null) {
+      throw new TypeError("Response must be an object");
+    }
+    if (!("publicKey" in response) || typeof response.publicKey !== "string") {
+      throw new TypeError("Response must contain a valid publicKey");
+    }
+    this.publicKey = Utils.fromB64ToArray(response.publicKey);
+    if (!("wrappedPrivateKey" in response) || typeof response.wrappedPrivateKey !== "string") {
+      throw new TypeError("Response must contain a valid wrappedPrivateKey");
+    }
+    this.wrappedPrivateKey = response.wrappedPrivateKey;
+    if ("signedPublicKey" in response && typeof response.signedPublicKey === "string") {
+      this.signedPublicKey = response.signedPublicKey;
+    } else {
+      this.signedPublicKey = null;
+    }
+  }
+};
+
+// libs/common/src/key-management/keys/response/signature-key-pair.response.ts
+var SignatureKeyPairResponse = class {
+  constructor(response) {
+    if (typeof response !== "object" || response == null) {
+      throw new TypeError("Response must be an object");
+    }
+    if (!("wrappedSigningKey" in response) || typeof response.wrappedSigningKey !== "string") {
+      throw new TypeError("Response must contain a valid wrappedSigningKey");
+    }
+    this.wrappedSigningKey = response.wrappedSigningKey;
+    if (!("verifyingKey" in response) || typeof response.verifyingKey !== "string") {
+      throw new TypeError("Response must contain a valid verifyingKey");
+    }
+    this.verifyingKey = response.verifyingKey;
+  }
+};
+
+// libs/common/src/key-management/keys/response/private-keys.response.ts
+var PrivateKeysResponseModel = class {
+  constructor(response) {
+    this.signatureKeyPair = null;
+    this.securityState = null;
+    if (typeof response !== "object" || response == null) {
+      throw new TypeError("Response must be an object");
+    }
+    if (!("publicKeyEncryptionKeyPair" in response) || typeof response.publicKeyEncryptionKeyPair !== "object") {
+      throw new TypeError("Response must contain a valid publicKeyEncryptionKeyPair");
+    }
+    this.publicKeyEncryptionKeyPair = new PublicKeyEncryptionKeyPairResponse(
+      response.publicKeyEncryptionKeyPair
+    );
+    if ("signatureKeyPair" in response && typeof response.signatureKeyPair === "object" && response.signatureKeyPair != null) {
+      this.signatureKeyPair = new SignatureKeyPairResponse(response.signatureKeyPair);
+    }
+    if ("securityState" in response && typeof response.securityState === "object" && response.securityState != null) {
+      this.securityState = new SecurityStateResponse(response.securityState);
+    }
+    if (this.signatureKeyPair !== null && this.securityState === null || this.signatureKeyPair === null && this.securityState !== null) {
+      throw new TypeError(
+        "Both signatureKeyPair and securityState must be present or absent together"
+      );
+    }
+  }
+  toWrappedAccountCryptographicState() {
+    if (this.signatureKeyPair === null && this.securityState === null) {
+      return {
+        V1: {
+          private_key: this.publicKeyEncryptionKeyPair.wrappedPrivateKey
+        }
+      };
+    } else if (this.signatureKeyPair !== null && this.securityState !== null) {
+      return {
+        V2: {
+          private_key: this.publicKeyEncryptionKeyPair.wrappedPrivateKey,
+          signing_key: this.signatureKeyPair.wrappedSigningKey,
+          signed_public_key: this.publicKeyEncryptionKeyPair.signedPublicKey,
+          security_state: this.securityState.securityState
+        }
+      };
+    } else {
+      throw new Error("Both signatureKeyPair and securityState must be present or absent together");
+    }
+  }
+  isV2Encryption() {
+    return this.signatureKeyPair !== null && this.securityState !== null;
+  }
+};
+
+// libs/common/src/admin-console/models/api/permissions.api.ts
+var PermissionsApi = class extends BaseResponse {
+  constructor(data = null) {
+    super(data);
+    if (data == null) {
+      return this;
+    }
+    this.accessEventLogs = this.getResponseProperty("AccessEventLogs");
+    this.accessImportExport = this.getResponseProperty("AccessImportExport");
+    this.accessReports = this.getResponseProperty("AccessReports");
+    this.createNewCollections = this.getResponseProperty("CreateNewCollections");
+    this.editAnyCollection = this.getResponseProperty("EditAnyCollection");
+    this.deleteAnyCollection = this.getResponseProperty("DeleteAnyCollection");
+    this.manageCiphers = this.getResponseProperty("ManageCiphers");
+    this.manageGroups = this.getResponseProperty("ManageGroups");
+    this.manageSso = this.getResponseProperty("ManageSso");
+    this.managePolicies = this.getResponseProperty("ManagePolicies");
+    this.manageUsers = this.getResponseProperty("ManageUsers");
+    this.manageResetPassword = this.getResponseProperty("ManageResetPassword");
+    this.manageScim = this.getResponseProperty("ManageScim");
+  }
+};
+
+// libs/common/src/admin-console/models/response/profile-organization.response.ts
+var ProfileOrganizationResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    this.id = this.getResponseProperty("Id");
+    this.name = this.getResponseProperty("Name");
+    this.usePolicies = this.getResponseProperty("UsePolicies");
+    this.useGroups = this.getResponseProperty("UseGroups");
+    this.useDirectory = this.getResponseProperty("UseDirectory");
+    this.useEvents = this.getResponseProperty("UseEvents");
+    this.useTotp = this.getResponseProperty("UseTotp");
+    this.use2fa = this.getResponseProperty("Use2fa");
+    this.useApi = this.getResponseProperty("UseApi");
+    this.useSso = this.getResponseProperty("UseSso");
+    this.useOrganizationDomains = this.getResponseProperty("UseOrganizationDomains");
+    this.useKeyConnector = this.getResponseProperty("UseKeyConnector") ?? false;
+    this.useScim = this.getResponseProperty("UseScim") ?? false;
+    this.useCustomPermissions = this.getResponseProperty("UseCustomPermissions") ?? false;
+    this.useResetPassword = this.getResponseProperty("UseResetPassword");
+    this.useSecretsManager = this.getResponseProperty("UseSecretsManager");
+    this.usePasswordManager = this.getResponseProperty("UsePasswordManager");
+    this.useActivateAutofillPolicy = this.getResponseProperty("UseActivateAutofillPolicy");
+    this.useAutomaticUserConfirmation = this.getResponseProperty("UseAutomaticUserConfirmation");
+    this.selfHost = this.getResponseProperty("SelfHost");
+    this.usersGetPremium = this.getResponseProperty("UsersGetPremium");
+    this.seats = this.getResponseProperty("Seats");
+    this.maxCollections = this.getResponseProperty("MaxCollections");
+    this.maxStorageGb = this.getResponseProperty("MaxStorageGb");
+    this.key = this.getResponseProperty("Key");
+    this.hasPublicAndPrivateKeys = this.getResponseProperty("HasPublicAndPrivateKeys");
+    this.status = this.getResponseProperty("Status");
+    this.type = this.getResponseProperty("Type");
+    this.enabled = this.getResponseProperty("Enabled");
+    this.ssoBound = this.getResponseProperty("SsoBound");
+    this.identifier = this.getResponseProperty("Identifier");
+    this.permissions = new PermissionsApi(this.getResponseProperty("permissions"));
+    this.resetPasswordEnrolled = this.getResponseProperty("ResetPasswordEnrolled");
+    this.userId = this.getResponseProperty("UserId");
+    this.organizationUserId = this.getResponseProperty("OrganizationUserId");
+    this.providerId = this.getResponseProperty("ProviderId");
+    this.providerName = this.getResponseProperty("ProviderName");
+    this.providerType = this.getResponseProperty("ProviderType");
+    this.familySponsorshipFriendlyName = this.getResponseProperty("FamilySponsorshipFriendlyName");
+    this.familySponsorshipAvailable = this.getResponseProperty("FamilySponsorshipAvailable");
+    this.productTierType = this.getResponseProperty("ProductTierType");
+    this.keyConnectorEnabled = this.getResponseProperty("KeyConnectorEnabled") ?? false;
+    this.keyConnectorUrl = this.getResponseProperty("KeyConnectorUrl");
+    const familySponsorshipLastSyncDateString = this.getResponseProperty(
+      "FamilySponsorshipLastSyncDate"
+    );
+    if (familySponsorshipLastSyncDateString) {
+      this.familySponsorshipLastSyncDate = new Date(familySponsorshipLastSyncDateString);
+    }
+    const familySponsorshipValidUntilString = this.getResponseProperty(
+      "FamilySponsorshipValidUntil"
+    );
+    if (familySponsorshipValidUntilString) {
+      this.familySponsorshipValidUntil = new Date(familySponsorshipValidUntilString);
+    }
+    this.familySponsorshipToDelete = this.getResponseProperty("FamilySponsorshipToDelete");
+    this.accessSecretsManager = this.getResponseProperty("AccessSecretsManager");
+    this.limitCollectionCreation = this.getResponseProperty("LimitCollectionCreation");
+    this.limitCollectionDeletion = this.getResponseProperty("LimitCollectionDeletion");
+    this.limitItemDeletion = this.getResponseProperty("LimitItemDeletion");
+    this.allowAdminAccessToAllCollectionItems = this.getResponseProperty(
+      "AllowAdminAccessToAllCollectionItems"
+    );
+    this.userIsManagedByOrganization = this.getResponseProperty("UserIsManagedByOrganization");
+    this.useAccessIntelligence = this.getResponseProperty("UseRiskInsights");
+    this.useAdminSponsoredFamilies = this.getResponseProperty("UseAdminSponsoredFamilies");
+    this.useDisableSMAdsForUsers = this.getResponseProperty("UseDisableSMAdsForUsers") ?? false;
+    this.isAdminInitiated = this.getResponseProperty("IsAdminInitiated");
+    this.ssoEnabled = this.getResponseProperty("SsoEnabled") ?? false;
+    this.ssoMemberDecryptionType = this.getResponseProperty("SsoMemberDecryptionType");
+    this.usePhishingBlocker = this.getResponseProperty("UsePhishingBlocker") ?? false;
+  }
+};
+
+// libs/common/src/admin-console/models/response/profile-provider-organization.response.ts
+var ProfileProviderOrganizationResponse = class extends ProfileOrganizationResponse {
+  constructor(response) {
+    super(response);
+    this.keyConnectorEnabled = false;
+  }
+};
+
+// libs/common/src/admin-console/models/response/profile-provider.response.ts
+var ProfileProviderResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    this.id = this.getResponseProperty("Id");
+    this.name = this.getResponseProperty("Name");
+    this.key = this.getResponseProperty("Key");
+    this.status = this.getResponseProperty("Status");
+    this.type = this.getResponseProperty("Type");
+    this.enabled = this.getResponseProperty("Enabled");
+    this.permissions = new PermissionsApi(this.getResponseProperty("permissions"));
+    this.userId = this.getResponseProperty("UserId");
+    this.useEvents = this.getResponseProperty("UseEvents");
+    this.providerStatus = this.getResponseProperty("ProviderStatus");
+    this.providerType = this.getResponseProperty("ProviderType");
+  }
+};
+
+// libs/common/src/models/response/profile.response.ts
+var ProfileResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    // Cleanup: This should be non-optional after the server has been released for a while https://bitwarden.atlassian.net/browse/PM-21768
+    this.accountKeys = null;
+    this.organizations = [];
+    this.providers = [];
+    this.providerOrganizations = [];
+    this.id = this.getResponseProperty("Id");
+    this.name = this.getResponseProperty("Name");
+    this.email = this.getResponseProperty("Email");
+    this.emailVerified = this.getResponseProperty("EmailVerified");
+    this.premiumPersonally = this.getResponseProperty("Premium");
+    this.premiumFromOrganization = this.getResponseProperty("PremiumFromOrganization");
+    this.culture = this.getResponseProperty("Culture");
+    this.twoFactorEnabled = this.getResponseProperty("TwoFactorEnabled");
+    const key = this.getResponseProperty("Key");
+    if (key) {
+      this.key = new EncString(key);
+    }
+    if (this.getResponseProperty("AccountKeys") != null) {
+      this.accountKeys = new PrivateKeysResponseModel(this.getResponseProperty("AccountKeys"));
+    }
+    this.avatarColor = this.getResponseProperty("AvatarColor");
+    this.creationDate = this.getResponseProperty("CreationDate");
+    this.privateKey = this.getResponseProperty("PrivateKey");
+    this.securityStamp = this.getResponseProperty("SecurityStamp");
+    this.forcePasswordReset = this.getResponseProperty("ForcePasswordReset") ?? false;
+    this.usesKeyConnector = this.getResponseProperty("UsesKeyConnector") ?? false;
+    this.verifyDevices = this.getResponseProperty("VerifyDevices") ?? true;
+    const organizations = this.getResponseProperty("Organizations");
+    if (organizations != null) {
+      this.organizations = organizations.map((o) => new ProfileOrganizationResponse(o));
+    }
+    const providers = this.getResponseProperty("Providers");
+    if (providers != null) {
+      this.providers = providers.map((o) => new ProfileProviderResponse(o));
+    }
+    const providerOrganizations = this.getResponseProperty("ProviderOrganizations");
+    if (providerOrganizations != null) {
+      this.providerOrganizations = providerOrganizations.map(
+        (o) => new ProfileProviderOrganizationResponse(o)
+      );
+    }
+  }
+};
+
+// libs/common/src/tools/send/models/api/send-file.api.ts
+var SendFileApi = class extends BaseResponse {
+  constructor(data = null) {
+    super(data);
+    if (data == null) {
+      return;
+    }
+    this.id = this.getResponseProperty("Id");
+    this.fileName = this.getResponseProperty("FileName");
+    this.size = this.getResponseProperty("Size");
+    this.sizeName = this.getResponseProperty("SizeName");
+  }
+};
+
+// libs/common/src/tools/send/models/api/send-text.api.ts
+var SendTextApi = class extends BaseResponse {
+  constructor(data = null) {
+    super(data);
+    if (data == null) {
+      return;
+    }
+    this.text = this.getResponseProperty("Text");
+    this.hidden = this.getResponseProperty("Hidden") || false;
+  }
+};
+
+// libs/common/src/tools/send/models/response/send.response.ts
+var SendResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    this.id = this.getResponseProperty("Id");
+    this.accessId = this.getResponseProperty("AccessId");
+    this.type = this.getResponseProperty("Type");
+    this.authType = this.getResponseProperty("AuthType");
+    this.name = this.getResponseProperty("Name");
+    this.notes = this.getResponseProperty("Notes");
+    this.key = this.getResponseProperty("Key");
+    this.maxAccessCount = this.getResponseProperty("MaxAccessCount");
+    this.accessCount = this.getResponseProperty("AccessCount");
+    this.revisionDate = this.getResponseProperty("RevisionDate");
+    this.expirationDate = this.getResponseProperty("ExpirationDate");
+    this.deletionDate = this.getResponseProperty("DeletionDate");
+    this.password = this.getResponseProperty("Password");
+    this.emails = this.getResponseProperty("Emails");
+    this.disable = this.getResponseProperty("Disabled") || false;
+    this.hideEmail = this.getResponseProperty("HideEmail") || false;
+    this.authType = this.getResponseProperty("AuthType");
+    const text = this.getResponseProperty("Text");
+    if (text != null) {
+      this.text = new SendTextApi(text);
+    }
+    const file = this.getResponseProperty("File");
+    if (file != null) {
+      this.file = new SendFileApi(file);
+    }
+  }
+};
+
+// libs/common/src/vault/models/api/card.api.ts
+var CardApi = class extends BaseResponse {
+  constructor(data = null) {
+    super(data);
+    if (data == null) {
+      return;
+    }
+    this.cardholderName = this.getResponseProperty("CardholderName");
+    this.brand = this.getResponseProperty("Brand");
+    this.number = this.getResponseProperty("Number");
+    this.expMonth = this.getResponseProperty("ExpMonth");
+    this.expYear = this.getResponseProperty("ExpYear");
+    this.code = this.getResponseProperty("Code");
+  }
+};
+
+// libs/common/src/vault/models/api/field.api.ts
+var FieldApi = class extends BaseResponse {
+  constructor(data = null) {
+    super(data);
+    if (data == null) {
+      return;
+    }
+    this.type = this.getResponseProperty("Type");
+    this.name = this.getResponseProperty("Name");
+    this.value = this.getResponseProperty("Value");
+    this.linkedId = this.getResponseProperty("linkedId");
+  }
+};
+
+// libs/common/src/vault/models/api/identity.api.ts
+var IdentityApi = class extends BaseResponse {
+  constructor(data = null) {
+    super(data);
+    if (data == null) {
+      return;
+    }
+    this.title = this.getResponseProperty("Title");
+    this.firstName = this.getResponseProperty("FirstName");
+    this.middleName = this.getResponseProperty("MiddleName");
+    this.lastName = this.getResponseProperty("LastName");
+    this.address1 = this.getResponseProperty("Address1");
+    this.address2 = this.getResponseProperty("Address2");
+    this.address3 = this.getResponseProperty("Address3");
+    this.city = this.getResponseProperty("City");
+    this.state = this.getResponseProperty("State");
+    this.postalCode = this.getResponseProperty("PostalCode");
+    this.country = this.getResponseProperty("Country");
+    this.company = this.getResponseProperty("Company");
+    this.email = this.getResponseProperty("Email");
+    this.phone = this.getResponseProperty("Phone");
+    this.ssn = this.getResponseProperty("SSN");
+    this.username = this.getResponseProperty("Username");
+    this.passportNumber = this.getResponseProperty("PassportNumber");
+    this.licenseNumber = this.getResponseProperty("LicenseNumber");
+  }
+};
+
+// libs/common/src/vault/models/api/fido2-credential.api.ts
+var Fido2CredentialApi = class extends BaseResponse {
+  constructor(data = null) {
+    super(data);
+    if (data == null) {
+      return;
+    }
+    this.credentialId = this.getResponseProperty("CredentialId");
+    this.keyType = this.getResponseProperty("KeyType");
+    this.keyAlgorithm = this.getResponseProperty("KeyAlgorithm");
+    this.keyCurve = this.getResponseProperty("KeyCurve");
+    this.keyValue = this.getResponseProperty("keyValue");
+    this.rpId = this.getResponseProperty("RpId");
+    this.userHandle = this.getResponseProperty("UserHandle");
+    this.userName = this.getResponseProperty("UserName");
+    this.counter = this.getResponseProperty("Counter");
+    this.rpName = this.getResponseProperty("RpName");
+    this.userDisplayName = this.getResponseProperty("UserDisplayName");
+    this.discoverable = this.getResponseProperty("Discoverable");
+    this.creationDate = this.getResponseProperty("CreationDate");
+  }
+};
+
+// libs/common/src/vault/models/api/login-uri.api.ts
+var LoginUriApi = class extends BaseResponse {
+  constructor(data = null) {
+    super(data);
+    this.match = null;
+    if (data == null) {
+      return;
+    }
+    this.uri = this.getResponseProperty("Uri");
+    this.uriChecksum = this.getResponseProperty("UriChecksum");
+    const match = this.getResponseProperty("Match");
+    this.match = match != null ? match : null;
+  }
+};
+
+// libs/common/src/vault/models/api/login.api.ts
+var LoginApi = class extends BaseResponse {
+  constructor(data = null) {
+    super(data);
+    if (data == null) {
+      return;
+    }
+    this.username = this.getResponseProperty("Username");
+    this.password = this.getResponseProperty("Password");
+    this.passwordRevisionDate = this.getResponseProperty("PasswordRevisionDate");
+    this.totp = this.getResponseProperty("Totp");
+    this.autofillOnPageLoad = this.getResponseProperty("AutofillOnPageLoad");
+    const uris = this.getResponseProperty("Uris");
+    if (uris != null) {
+      this.uris = uris.map((u) => new LoginUriApi(u));
+    }
+    const fido2Credentials = this.getResponseProperty("Fido2Credentials");
+    if (fido2Credentials != null) {
+      this.fido2Credentials = fido2Credentials.map(
+        (key) => new Fido2CredentialApi(key)
+      );
+    }
+  }
+};
+
+// libs/common/src/vault/models/api/secure-note.api.ts
+var SecureNoteApi = class extends BaseResponse {
+  constructor(data = null) {
+    super(data);
+    if (data == null) {
+      return;
+    }
+    this.type = this.getResponseProperty("Type");
+  }
+};
+
+// libs/common/src/vault/models/api/ssh-key.api.ts
+var SshKeyApi = class extends BaseResponse {
+  constructor(data = null) {
+    super(data);
+    if (data == null) {
+      return;
+    }
+    this.privateKey = this.getResponseProperty("PrivateKey");
+    this.publicKey = this.getResponseProperty("PublicKey");
+    this.keyFingerprint = this.getResponseProperty("KeyFingerprint");
+  }
+};
+
+// libs/common/src/vault/models/response/attachment.response.ts
+var AttachmentResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    this.id = this.getResponseProperty("Id");
+    this.url = this.getResponseProperty("Url");
+    this.fileName = this.getResponseProperty("FileName");
+    this.key = this.getResponseProperty("Key");
+    this.size = this.getResponseProperty("Size");
+    this.sizeName = this.getResponseProperty("SizeName");
+  }
+};
+
+// libs/common/src/vault/models/response/password-history.response.ts
+var PasswordHistoryResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    this.password = this.getResponseProperty("Password");
+    this.lastUsedDate = this.getResponseProperty("LastUsedDate");
+  }
+};
+
+// libs/common/src/vault/models/response/cipher.response.ts
+var CipherResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    this.id = this.getResponseProperty("Id");
+    this.organizationId = this.getResponseProperty("OrganizationId");
+    this.folderId = this.getResponseProperty("FolderId") || null;
+    this.type = this.getResponseProperty("Type");
+    this.name = this.getResponseProperty("Name");
+    this.notes = this.getResponseProperty("Notes");
+    this.favorite = this.getResponseProperty("Favorite") || false;
+    this.edit = !!this.getResponseProperty("Edit");
+    if (this.getResponseProperty("ViewPassword") == null) {
+      this.viewPassword = true;
+    } else {
+      this.viewPassword = this.getResponseProperty("ViewPassword");
+    }
+    this.permissions = new CipherPermissionsApi(this.getResponseProperty("Permissions"));
+    this.organizationUseTotp = this.getResponseProperty("OrganizationUseTotp");
+    this.revisionDate = this.getResponseProperty("RevisionDate");
+    this.collectionIds = this.getResponseProperty("CollectionIds");
+    this.creationDate = this.getResponseProperty("CreationDate");
+    this.deletedDate = this.getResponseProperty("DeletedDate");
+    this.archivedDate = this.getResponseProperty("ArchivedDate");
+    const login = this.getResponseProperty("Login");
+    if (login != null) {
+      this.login = new LoginApi(login);
+    }
+    const card = this.getResponseProperty("Card");
+    if (card != null) {
+      this.card = new CardApi(card);
+    }
+    const identity = this.getResponseProperty("Identity");
+    if (identity != null) {
+      this.identity = new IdentityApi(identity);
+    }
+    const secureNote = this.getResponseProperty("SecureNote");
+    if (secureNote != null) {
+      this.secureNote = new SecureNoteApi(secureNote);
+    }
+    const sshKey = this.getResponseProperty("sshKey");
+    if (sshKey != null) {
+      this.sshKey = new SshKeyApi(sshKey);
+    }
+    const fields = this.getResponseProperty("Fields");
+    if (fields != null) {
+      this.fields = fields.map((f) => new FieldApi(f));
+    }
+    const attachments = this.getResponseProperty("Attachments");
+    if (attachments != null) {
+      this.attachments = attachments.map((a) => new AttachmentResponse(a));
+    }
+    const passwordHistory = this.getResponseProperty("PasswordHistory");
+    if (passwordHistory != null) {
+      this.passwordHistory = passwordHistory.map((h) => new PasswordHistoryResponse(h));
+    }
+    this.reprompt = this.getResponseProperty("Reprompt") || CipherRepromptType.None;
+    this.key = this.getResponseProperty("Key") || null;
+  }
+};
+
+// libs/common/src/vault/models/response/folder.response.ts
+var FolderResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    this.id = this.getResponseProperty("Id");
+    this.name = this.getResponseProperty("Name");
+    this.revisionDate = this.getResponseProperty("RevisionDate");
+  }
+};
+
+// libs/common/src/platform/sync/sync.response.ts
+var SyncResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    this.folders = [];
+    this.collections = [];
+    this.ciphers = [];
+    this.policies = [];
+    this.sends = [];
+    const profile = this.getResponseProperty("Profile");
+    if (profile != null) {
+      this.profile = new ProfileResponse(profile);
+    }
+    const folders = this.getResponseProperty("Folders");
+    if (folders != null) {
+      this.folders = folders.map((f) => new FolderResponse(f));
+    }
+    const collections = this.getResponseProperty("Collections");
+    if (collections != null) {
+      this.collections = collections.map((c) => new CollectionDetailsResponse(c));
+    }
+    const ciphers = this.getResponseProperty("Ciphers");
+    if (ciphers != null) {
+      this.ciphers = ciphers.map((c) => new CipherResponse(c));
+    }
+    const domains = this.getResponseProperty("Domains");
+    if (domains != null) {
+      this.domains = new DomainsResponse(domains);
+    }
+    const policies = this.getResponseProperty("Policies");
+    if (policies != null) {
+      this.policies = policies.map((p) => new PolicyResponse(p));
+    }
+    const sends = this.getResponseProperty("Sends");
+    if (sends != null) {
+      this.sends = sends.map((s) => new SendResponse(s));
+    }
+    const userDecryption = this.getResponseProperty("UserDecryption");
+    if (userDecryption != null && typeof userDecryption === "object") {
+      this.userDecryption = new UserDecryptionResponse(userDecryption);
+    }
+  }
+};
+
+// libs/common/src/auth/models/response/master-password-policy.response.ts
+var MasterPasswordPolicyResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    this.minComplexity = this.getResponseProperty("MinComplexity");
+    this.minLength = this.getResponseProperty("MinLength");
+    this.requireUpper = this.getResponseProperty("RequireUpper");
+    this.requireLower = this.getResponseProperty("RequireLower");
+    this.requireNumbers = this.getResponseProperty("RequireNumbers");
+    this.requireSpecial = this.getResponseProperty("RequireSpecial");
+    this.enforceOnLogin = this.getResponseProperty("EnforceOnLogin");
+  }
+};
+
+// libs/common/src/auth/models/response/user-decryption-options/key-connector-user-decryption-option.response.ts
+var KeyConnectorUserDecryptionOptionResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    this.keyConnectorUrl = this.getResponseProperty("KeyConnectorUrl");
+  }
+};
+
+// libs/common/src/auth/models/response/user-decryption-options/trusted-device-user-decryption-option.response.ts
+var TrustedDeviceUserDecryptionOptionResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    this.hasAdminApproval = this.getResponseProperty("HasAdminApproval");
+    this.hasLoginApprovingDevice = this.getResponseProperty("HasLoginApprovingDevice");
+    this.hasManageResetPasswordPermission = this.getResponseProperty(
+      "HasManageResetPasswordPermission"
+    );
+    this.isTdeOffboarding = this.getResponseProperty("IsTdeOffboarding");
+    if (response.EncryptedPrivateKey) {
+      this.encryptedPrivateKey = new EncString(this.getResponseProperty("EncryptedPrivateKey"));
+    }
+    if (response.EncryptedUserKey) {
+      this.encryptedUserKey = new EncString(this.getResponseProperty("EncryptedUserKey"));
+    }
+  }
+};
+
+// libs/common/src/auth/models/response/user-decryption-options/user-decryption-options.response.ts
+var UserDecryptionOptionsResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    this.hasMasterPassword = this.getResponseProperty("HasMasterPassword");
+    const masterPasswordUnlock = this.getResponseProperty("MasterPasswordUnlock");
+    if (masterPasswordUnlock != null && typeof masterPasswordUnlock === "object") {
+      this.masterPasswordUnlock = new MasterPasswordUnlockResponse(masterPasswordUnlock);
+    }
+    if (response.TrustedDeviceOption) {
+      this.trustedDeviceOption = new TrustedDeviceUserDecryptionOptionResponse(
+        this.getResponseProperty("TrustedDeviceOption")
+      );
+    }
+    if (response.KeyConnectorOption) {
+      this.keyConnectorOption = new KeyConnectorUserDecryptionOptionResponse(
+        this.getResponseProperty("KeyConnectorOption")
+      );
+    }
+    if (response.WebAuthnPrfOption) {
+      this.webAuthnPrfOption = new WebAuthnPrfDecryptionOptionResponse(
+        this.getResponseProperty("WebAuthnPrfOption")
+      );
+    }
+  }
+};
+
+// libs/common/src/auth/models/response/identity-token.response.ts
+var IdentityTokenResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    // TODO: https://bitwarden.atlassian.net/browse/PM-30124 - Rename to just accountKeys
+    this.accountKeysResponseModel = null;
+    const accessToken = this.getResponseProperty("access_token");
+    if (accessToken == null || typeof accessToken !== "string") {
+      throw new Error("Identity response does not contain a valid access token");
+    }
+    const tokenType = this.getResponseProperty("token_type");
+    if (tokenType == null || typeof tokenType !== "string") {
+      throw new Error("Identity response does not contain a valid token type");
+    }
+    this.accessToken = accessToken;
+    this.tokenType = tokenType;
+    const expiresIn = this.getResponseProperty("expires_in");
+    if (expiresIn != null && typeof expiresIn === "number") {
+      this.expiresIn = expiresIn;
+    }
+    const refreshToken = this.getResponseProperty("refresh_token");
+    if (refreshToken != null && typeof refreshToken === "string") {
+      this.refreshToken = refreshToken;
+    }
+    this.privateKey = this.getResponseProperty("PrivateKey");
+    if (this.getResponseProperty("AccountKeys") != null) {
+      this.accountKeysResponseModel = new PrivateKeysResponseModel(
+        this.getResponseProperty("AccountKeys")
+      );
+    }
+    const key = this.getResponseProperty("Key");
+    if (key) {
+      this.key = new EncString(key);
+    }
+    this.twoFactorToken = this.getResponseProperty("TwoFactorToken");
+    const kdf = this.getResponseProperty("Kdf");
+    const kdfIterations = this.getResponseProperty("KdfIterations");
+    const kdfMemory = this.getResponseProperty("KdfMemory");
+    const kdfParallelism = this.getResponseProperty("KdfParallelism");
+    this.kdfConfig = kdf == 0 /* PBKDF2_SHA256 */ ? new PBKDF2KdfConfig(kdfIterations) : new Argon2KdfConfig(kdfIterations, kdfMemory, kdfParallelism);
+    this.forcePasswordReset = this.getResponseProperty("ForcePasswordReset");
+    this.apiUseKeyConnector = this.getResponseProperty("ApiUseKeyConnector");
+    this.masterPasswordPolicy = new MasterPasswordPolicyResponse(
+      this.getResponseProperty("MasterPasswordPolicy")
+    );
+    const userDecryptionOptions = this.getResponseProperty("UserDecryptionOptions");
+    if (userDecryptionOptions != null && typeof userDecryptionOptions === "object") {
+      this.userDecryptionOptions = new UserDecryptionOptionsResponse(userDecryptionOptions);
+    }
+  }
+  hasMasterKeyEncryptedUserKey() {
+    return Boolean(this.key);
+  }
+};
+
+// libs/common/src/auth/models/response/prelogin.response.ts
+var PreloginResponse = class extends BaseResponse {
+  constructor(response) {
+    super(response);
+    this.kdf = this.getResponseProperty("Kdf");
+    this.kdfIterations = this.getResponseProperty("KdfIterations");
+    this.kdfMemory = this.getResponseProperty("KdfMemory");
+    this.kdfParallelism = this.getResponseProperty("KdfParallelism");
+  }
+};
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   Cipher,
@@ -4817,5 +6598,8 @@ var CipherWithIdExport = class extends CipherExport {
   Folder,
   FolderData,
   FolderWithIdExport,
-  SymmetricCryptoKey
+  IdentityTokenResponse,
+  PreloginResponse,
+  SymmetricCryptoKey,
+  SyncResponse
 });
