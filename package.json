@@ -7,6 +7,8 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
         "pack": "electron-builder --dir",
         "dist": "electron-builder"
     },
@@ -30,14 +32,17 @@
     "dependencies": {
         "@bitwarden/sdk-internal": "0.2.0-main.546",
         "big-integer": "1.6.52",
+        "compare-versions": "^6.1.1",
         "electron-log": "^5.4.3",
         "keytar": "^7.9.0",
         "rxjs": "7.8.1",
         "tldts": "7.0.22"
     },
     "devDependencies": {
+        "@electron-toolkit/eslint-config": "^2.1.0",
         "electron": "^40.4.1",
         "electron-builder": "^26.8.1",
+        "eslint": "^10.0.0",
         "prettier": "^3.8.1"
     }
 }

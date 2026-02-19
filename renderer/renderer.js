@@ -102,7 +102,7 @@ window.ipcRenderer.on("settings", (event, data) => {
         } else {
             $("#last_backup").text("Never");
         }
-    } catch (error) {
+    } catch {
         log.error("[Renderer] Failed to load settings from main process.");
         return;
     }

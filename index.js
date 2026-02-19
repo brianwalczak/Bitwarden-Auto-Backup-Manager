@@ -1,4 +1,5 @@
 import { app, BrowserWindow, Menu, Notification, Tray, ipcMain, shell, dialog } from "electron";
+import { compareVersions } from "compare-versions";
 import { isDeepStrictEqual } from "node:util";
 import log from "electron-log/main.js";
 import fs from "node:fs/promises";
@@ -7,7 +8,7 @@ import os from "node:os";
 
 import { exportVault } from "./utils/vault/export.js"; // Exports a user vault from their Bitwarden Desktop configuration
 import { restoreBackup } from "./utils/vault/restore.js"; // Restores a user vault from their KDF iteration and master password (w/ PBKDF2 only)
-import { readFile, compareVersions, mergeDeep, fileExists, sanitizeString } from "./utils/utils.js";
+import { readFile, mergeDeep, fileExists, sanitizeString } from "./utils/utils.js";
 
 let win = null; // Global variable to hold the window instance
 let tray = null; // Global variable to hold the tray instance
@@ -101,7 +102,7 @@ async function checkForUpdates(window) {
         const res = await req.json();
         res.currentVersion = app.getVersion();
 
-        if (compareVersions(res.currentVersion, "<", res.latestVersion) && res.requireUpdate) {
+        if (compareVersions(res.currentVersion, res.latestVersion) === -1 && res.requireUpdate) {
             dialog
                 .showMessageBox({
                     type: "warning",
@@ -123,9 +124,9 @@ async function checkForUpdates(window) {
                         log.warn("[Main Process] User ignored critical update, danger.");
                     }
                 })
-                .catch((err) => {});
+                .catch(() => {});
         } else {
-            res.upToDate = compareVersions(res.currentVersion, "==", res.latestVersion);
+            res.upToDate = compareVersions(res.currentVersion, res.latestVersion) === 0;
             window.webContents.send("version", res);
         }
     } catch (error) {
@@ -483,7 +484,7 @@ async function createWindow() {
                                 break;
                         }
                     })
-                    .catch((err) => {});
+                    .catch(() => {});
             },
         },
         {
@@ -551,7 +552,7 @@ async function createWindow() {
         });
 
         notification.show();
-        notification.on("click", (event, arg) => {
+        notification.on("click", () => {
             shell.showItemInFolder(backup.location);
         });
     });
@@ -658,7 +659,7 @@ async function checkOldBackups() {
             }
 
             if (oldestFile) await fs.unlink(oldestFile); // Delete the oldest file to free up space
-        } catch (error) {
+        } catch {
             continue;
         }
     }

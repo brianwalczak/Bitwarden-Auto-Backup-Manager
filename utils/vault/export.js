@@ -50,13 +50,13 @@ async function exportVault(appData, uid = null) {
     let ciphers = [];
 
     for (const id in ciphersData) {
-        if (ciphersData.hasOwnProperty(id)) {
+        if (Object.hasOwn(ciphersData, id)) {
             ciphers.push(new Cipher(ciphersData[id], null));
         }
     }
 
     for (const id in foldersData) {
-        if (foldersData.hasOwnProperty(id)) {
+        if (Object.hasOwn(foldersData, id)) {
             folders.push(new Folder(foldersData[id]));
         }
     }

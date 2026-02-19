@@ -101,7 +101,9 @@ async function getIterations(email, region, urls = null) {
         headers: {
             "content-type": "application/json; charset=utf-8",
         },
-        body: `{\"email\":\"${email}\"}`,
+        body: JSON.stringify({
+            email: email,
+        }),
         method: "POST",
     });
 
