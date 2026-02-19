@@ -48,7 +48,7 @@ async function decryptItems(backup, symmetricKey) {
 
         // reset ids in case they were set for some reason
         cipher.id = null;
-        cipher.organizationId = this.organizationId;
+        // cipher.organizationId can stay since we're not logged in, therefore don't know the org.
         cipher.collectionIds = null;
 
         // make sure password history is limited
