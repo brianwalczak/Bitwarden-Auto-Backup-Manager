@@ -1,8 +1,8 @@
-const { getCredential } = require("../credentials.js");
-const { getAccessToken, syncVault, getIterations } = require("../bitwarden.js");
-const { readFile } = require("../utils.js");
+import { getCredential } from "../credentials.js";
+import { getAccessToken, syncVault, getIterations } from "../bitwarden.js";
+import { readFile } from "../utils.js";
 
-const { Cipher, CipherData, CipherWithIdExport, Folder, FolderData, FolderWithIdExport } = require("../../libs/common.cjs");
+import { Cipher, CipherData, CipherWithIdExport, Folder, FolderData, FolderWithIdExport } from "../../libs/common.cjs";
 
 async function exportVault(appData, uid = null) {
     const userData = await readFile(appData);
@@ -100,4 +100,4 @@ async function exportVault(appData, uid = null) {
     return jsonDoc;
 }
 
-module.exports = { exportVault };
+export { exportVault };

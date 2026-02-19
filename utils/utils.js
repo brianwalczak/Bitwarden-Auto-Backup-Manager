@@ -1,4 +1,4 @@
-const fs = require("fs").promises;
+import fs from "node:fs/promises";
 
 function isObject(item) {
     return item && typeof item === "object" && !Array.isArray(item);
@@ -77,11 +77,4 @@ const sanitizeString = (str) => {
     return str.replaceAll(emailRegex, "[email redacted]");
 };
 
-module.exports = {
-    joinUrl,
-    readFile,
-    compareVersions,
-    mergeDeep,
-    fileExists,
-    sanitizeString,
-};
+export { joinUrl, readFile, compareVersions, mergeDeep, fileExists, sanitizeString };

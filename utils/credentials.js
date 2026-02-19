@@ -1,5 +1,5 @@
 // If you're prompted by your operating system, such as macOS, to enter your password before viewing your Bitwarden credential, make sure to click "Always Allow" to prevent any annoyances while automatic backups are running
-const keytar = require("keytar");
+import keytar from "keytar";
 
 // Simple function written with keytar to find credential based on search query
 async function findCredential(service, code) {
@@ -33,7 +33,4 @@ async function getCredential(service, account) {
     }
 }
 
-module.exports = {
-    findCredential,
-    getCredential,
-};
+export { findCredential, getCredential };

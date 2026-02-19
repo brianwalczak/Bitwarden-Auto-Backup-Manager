@@ -5,6 +5,7 @@
     "author": "Brian Walczak",
     "version": "2.2.1",
     "main": "index.js",
+    "type": "module",
     "scripts": {
         "pack": "electron-builder --dir",
         "dist": "electron-builder"
@@ -29,10 +30,10 @@
     "dependencies": {
         "@bitwarden/sdk-internal": "0.2.0-main.546",
         "big-integer": "1.6.52",
-        "rxjs": "7.8.1",
-        "tldts": "7.0.22",
         "electron-log": "^5.4.3",
-        "keytar": "^7.9.0"
+        "keytar": "^7.9.0",
+        "rxjs": "7.8.1",
+        "tldts": "7.0.22"
     },
     "devDependencies": {
         "electron": "^40.4.1",

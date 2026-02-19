@@ -1,5 +1,5 @@
-const { SyncResponse, IdentityTokenResponse, PreloginResponse } = require("../libs/common.cjs");
-const { joinUrl } = require("./utils");
+import { SyncResponse, IdentityTokenResponse, PreloginResponse } from "../libs/common.cjs";
+import { joinUrl } from "./utils.js";
 
 // Creates an API request to Bitwarden creating an access token
 async function getAccessToken(refresh_token, region, urls = null) {
@@ -112,9 +112,4 @@ async function getIterations(email, region, urls = null) {
     return preloginResponse.kdfIterations;
 }
 
-// Export all functions for use
-module.exports = {
-    getAccessToken,
-    syncVault,
-    getIterations,
-};
+export { getAccessToken, syncVault, getIterations };

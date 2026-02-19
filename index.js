@@ -1,13 +1,13 @@
-const { app, BrowserWindow, Menu, Notification, Tray, ipcMain, shell, dialog } = require("electron");
-const { isDeepStrictEqual } = require("node:util");
-const log = require("electron-log");
-const fs = require("fs").promises;
-const path = require("path");
-const os = require("os");
+import { app, BrowserWindow, Menu, Notification, Tray, ipcMain, shell, dialog } from "electron";
+import { isDeepStrictEqual } from "node:util";
+import log from "electron-log/main.js";
+import fs from "node:fs/promises";
+import path from "node:path";
+import os from "node:os";
 
-const { exportVault } = require("./utils/vault/export.js"); // Exports a user vault from their Bitwarden Desktop configuration
-const { restoreBackup } = require("./utils/vault/restore.js"); // Restores a user vault from their KDF iteration and master password (w/ PBKDF2 only)
-const { readFile, compareVersions, mergeDeep, fileExists, sanitizeString } = require("./utils/utils.js");
+import { exportVault } from "./utils/vault/export.js"; // Exports a user vault from their Bitwarden Desktop configuration
+import { restoreBackup } from "./utils/vault/restore.js"; // Restores a user vault from their KDF iteration and master password (w/ PBKDF2 only)
+import { readFile, compareVersions, mergeDeep, fileExists, sanitizeString } from "./utils/utils.js";
 
 let win = null; // Global variable to hold the window instance
 let tray = null; // Global variable to hold the tray instance
@@ -68,13 +68,13 @@ function prompt(config) {
             resizable: false,
             frame: false,
             webPreferences: {
-                preload: path.join(__dirname, "src/components/prompt/preload.js"),
+                preload: path.join(import.meta.dirname, "src/components/prompt/preload.mjs"),
                 contextIsolation: true,
                 nodeIntegration: false,
             },
         });
 
-        modal.loadFile(path.join(__dirname, "src/components/prompt/index.html"));
+        modal.loadFile(path.join(import.meta.dirname, "src/components/prompt/index.html"));
 
         modal.webContents.once("did-finish-load", () => {
             modal.webContents.send("init", config);
@@ -134,7 +134,7 @@ async function checkForUpdates(window) {
 // Creates the system tray app icon
 async function updateTray(statusText = null) {
     if (!tray) {
-        tray = new Tray(app.isPackaged ? path.join(process.resourcesPath, "icon.ico") : path.join(__dirname, "build", "icon.ico"));
+        tray = new Tray(app.isPackaged ? path.join(process.resourcesPath, "icon.ico") : path.join(import.meta.dirname, "build", "icon.ico"));
         tray.setToolTip("Bitwarden Auto-Backup Manager");
 
         tray.on("click", () => {
@@ -445,11 +445,11 @@ async function createWindow() {
             nodeIntegration: false,
             contextIsolation: true,
             sandbox: false,
-            preload: path.join(__dirname, "src/preload.js"),
+            preload: path.join(import.meta.dirname, "src/preload.mjs"),
         },
     });
 
-    win.loadFile(path.join(__dirname, "src/index.html"));
+    win.loadFile(path.join(import.meta.dirname, "src/index.html"));
 
     if (process.platform === "win32") {
         app.setAppUserModelId(app.name); // Set the app name for notifications

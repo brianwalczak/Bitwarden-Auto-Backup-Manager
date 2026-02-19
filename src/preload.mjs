@@ -1,5 +1,5 @@
-const { contextBridge, ipcRenderer, shell } = require("electron");
-const log = require("electron-log/renderer");
+import { contextBridge, ipcRenderer, shell } from "electron";
+import log from "electron-log/renderer.js";
 
 contextBridge.exposeInMainWorld("log", {
     info: (...args) => log.info(...args),

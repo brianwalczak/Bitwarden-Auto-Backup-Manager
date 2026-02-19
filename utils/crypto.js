@@ -1,5 +1,5 @@
 // https://github.com/bitwarden/clients/blob/14a4359c873445d3641d34dbb31ce71d24d7e785/libs/common/src/key-management/crypto/services/encrypt.service.implementation.ts
-const crypto = require("crypto");
+import crypto from "node:crypto";
 
 // Reference to encryption types used (helps identify encryption type from b64)
 const encTypes = {
@@ -307,22 +307,4 @@ class SimpleSymmetricCryptoKey {
     }
 }
 
-module.exports = {
-    encTypes,
-    fromUtf8,
-    toUtf8,
-    toB64,
-    ByteData,
-    pbkdf2,
-    hkdfExpand,
-    deriveMasterKey,
-    stretchKey,
-    deriveMasterPasswordHash,
-    computeMac,
-    macsEqual,
-    buildDataForMac,
-    aesDecrypt,
-    EncCipher,
-    SimpleSymmetricCryptoKey,
-    decryptToBytes,
-};
+export { encTypes, fromUtf8, toUtf8, toB64, ByteData, pbkdf2, hkdfExpand, deriveMasterKey, stretchKey, deriveMasterPasswordHash, computeMac, macsEqual, buildDataForMac, aesDecrypt, EncCipher, SimpleSymmetricCryptoKey, decryptToBytes };

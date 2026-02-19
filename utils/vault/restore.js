@@ -1,5 +1,5 @@
-const { toUtf8, ByteData, deriveMasterKey, stretchKey, aesDecrypt, EncCipher, SimpleSymmetricCryptoKey, decryptToBytes } = require("../crypto.js");
-const { CipherWithIdExport, FolderWithIdExport, SymmetricCryptoKey, EncString } = require("../../libs/common.cjs");
+import { toUtf8, ByteData, deriveMasterKey, stretchKey, aesDecrypt, EncCipher, SimpleSymmetricCryptoKey, decryptToBytes } from "../crypto.js";
+import { CipherWithIdExport, FolderWithIdExport, SymmetricCryptoKey, EncString } from "../../libs/common.cjs";
 
 async function forEachEncString(cipher, callback) {
     // Helper function to traverse nested properties
@@ -133,4 +133,4 @@ async function restoreBackup(backup, masterPassword) {
     return file;
 }
 
-module.exports = { restoreBackup };
+export { restoreBackup };
