@@ -760,11 +760,13 @@ app.on("before-quit", () => {
 // Run when the app is ready and started
 app.on("ready", async () => {
     // Enable auto-backup to run in the background at startup
-    app.setLoginItemSettings({
-        openAtLogin: true,
-        path: app.getPath("exe"),
-        args: ["--quiet"],
-    });
+    if (app.isPackaged) {
+        app.setLoginItemSettings({
+            openAtLogin: true,
+            path: app.getPath("exe"),
+            args: ["--quiet"],
+        });
+    }
 
     // Simple check if the user has the Bitwarden Desktop app and proper data installed.
     await checkRequirements();
