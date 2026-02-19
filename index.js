@@ -68,9 +68,10 @@ function prompt(config) {
             resizable: false,
             frame: false,
             webPreferences: {
-                preload: path.join(import.meta.dirname, "src/components/prompt/preload.mjs"),
+                preload: path.join(import.meta.dirname, "src/components/prompt/preload.js"),
                 contextIsolation: true,
                 nodeIntegration: false,
+                sandbox: false
             },
         });
 
@@ -445,7 +446,7 @@ async function createWindow() {
             nodeIntegration: false,
             contextIsolation: true,
             sandbox: false,
-            preload: path.join(import.meta.dirname, "src/preload.mjs"),
+            preload: path.join(import.meta.dirname, "src/preload.js"),
         },
     });
 
