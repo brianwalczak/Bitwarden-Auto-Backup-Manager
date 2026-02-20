@@ -421,13 +421,10 @@ async function restoreHandler(data = null) {
                 return dialog.showErrorBox("Decryption Failed", `Could not decrypt your backup file. Please verify your master password and that the file isn't corrupted.\n\n${decryption.reason}`);
             }
 
-            shell.showItemInFolder(decryption.location);
-            dialog.showMessageBox({
-                type: "info",
-                title: "Restore Complete",
-                message: `Vault Restored Successfully`,
-                detail: `Your vault has been decrypted and saved locally. Keep this file safe - it contains all of your unencrypted vault data.`,
-                buttons: ["OK"],
+            win.webContents.send("toast", {
+                title: "Restore Completed",
+                body: "Your vault has been decrypted and saved locally. Keep this file safe - it contains all of your unencrypted vault data.",
+                link: { label: "Show in folder", channel: "open-path", data: decryption.location, closeOnClick: true },
             });
 
             return true;
