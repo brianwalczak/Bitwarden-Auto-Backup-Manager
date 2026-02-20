@@ -8,7 +8,7 @@ import os from "node:os";
 
 import { exportVault } from "./utils/vault/export.js"; // Exports a user vault from their Bitwarden Desktop configuration
 import { restoreBackup } from "./utils/vault/restore.js"; // Restores a user vault from their KDF iteration and master password (w/ PBKDF2 only)
-import { readFile, mergeDeep, fileExists, sanitizeString } from "./utils/utils.js";
+import { readFile, saveFile, mergeDeep, fileExists, sanitizeString } from "./utils/utils.js";
 
 let win = null; // Global variable to hold the window instance
 let tray = null; // Global variable to hold the tray instance
@@ -197,8 +197,7 @@ async function decryptFile(backup, masterPassword) {
         const folder = path.join(settings.folder, "Restored");
         const file = `Backup Restore (${Date.now()}).json`;
 
-        await fs.mkdir(folder, { recursive: true }); // Create restore directory if doesn't exist
-        await fs.writeFile(path.join(folder, file), JSON.stringify(decBackup, null, "  "), "utf8");
+        await saveFile(path.join(folder, file), JSON.stringify(decBackup, null, "  "), { recursive: true });
         return { success: true, location: path.join(folder, file) };
     } catch (error) {
         log.error("[Main Process] Unable to decrypt a backup file:", error);
@@ -277,7 +276,7 @@ async function getSettings() {
         };
 
         if (!isDeepStrictEqual(settings, data)) {
-            await fs.writeFile(config.settings, JSON.stringify(data, null, 2));
+            await saveFile(config.settings, JSON.stringify(data, null, 2));
         }
 
         // Update the tray status with existing data (included here to prevent large I/O reads)
@@ -318,7 +317,7 @@ async function updateSettings(data) {
         if (data.folder) data.folder = data.folder.replaceAll("\\", "/"); // Replace all "\" occurrences in the directory with "/"
 
         mergeDeep(settings, data);
-        await fs.writeFile(config.settings, JSON.stringify(settings, null, 2));
+        await saveFile(config.settings, JSON.stringify(settings, null, 2));
 
         return { success: true, data: settings };
     } catch (error) {
@@ -680,8 +679,7 @@ async function performBackup(uid) {
         const file = `${formattedDate} (${Date.now()}).json`;
         const folder = path.join(settings.folder, uid);
 
-        await fs.mkdir(folder, { recursive: true }); // Create backup directory if doesn't exist
-        await fs.writeFile(path.join(folder, file), JSON.stringify(encBackup, null, 2), "utf8");
+        await saveFile(path.join(folder, file), JSON.stringify(encBackup, null, 2), { recursive: true });
         await checkOldBackups(); // Check all old backups to see if the configuration by the user exceeded
 
         const backups = await collectBackups(settings.folder);

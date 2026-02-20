@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import * as nodePath from "node:path";
 
 function isObject(item) {
     return item && typeof item === "object" && !Array.isArray(item);
@@ -17,6 +18,29 @@ async function readFile(path) {
         return jsonData;
     } catch {
         return null;
+    }
+}
+
+async function saveFile(path, data, { recursive = false, avoidOverwrite = false } = {}, increment = 0) {
+    let { dir, name, ext } = nodePath.parse(path);
+    
+    if (recursive) {
+        await fs.mkdir(dir, { recursive: true });
+    }
+
+    try {
+        if (increment > 0) {
+            name = `${name} (${increment})`;
+        }
+
+        await fs.writeFile(nodePath.join(dir, (name + ext)), data, { encoding: "utf8", ...(avoidOverwrite && { flag: "wx" }) });
+    } catch (error) {
+        if (error.code === "EEXIST" && avoidOverwrite) {
+            increment++;
+            return await saveFile(path, data, { recursive, avoidOverwrite }, increment);
+        }
+
+        throw error;
     }
 }
 
@@ -56,4 +80,4 @@ const sanitizeString = (str) => {
     return str.replaceAll(emailRegex, "[email redacted]");
 };
 
-export { joinUrl, readFile, mergeDeep, fileExists, sanitizeString };
+export { joinUrl, readFile, saveFile, mergeDeep, fileExists, sanitizeString };
