@@ -1,3 +1,32 @@
+window.ipcRenderer.on("toast", (event, data) => {
+    const toast = $(`
+        <div class="toast">
+            ${data.title ? `<p class="toast-title">${data.title}</p>` : ""}
+            <p class="toast-body">${data.body}</p>
+            ${data.link ? `<a class="toast-link" href="#">${data.link.label}</a>` : ""}
+        </div>
+    `);
+
+    const dismiss = () => {
+        if (toast.hasClass("removing")) return;
+
+        toast.addClass("removing");
+        setTimeout(() => toast.remove(), 300);
+    };
+
+    if (data.link) {
+        toast.find(".toast-link").on("click", (e) => {
+            e.preventDefault();
+
+            window.ipcRenderer.send(data.link.channel, data.link.data);
+            if (data.link.closeOnClick) dismiss();
+        });
+    }
+
+    $(".toast-container").append(toast);
+    setTimeout(dismiss, 4000);
+});
+
 window.ipcRenderer.on("users", (event, data) => {
     let isProtected = true;
     let someProtected = false;

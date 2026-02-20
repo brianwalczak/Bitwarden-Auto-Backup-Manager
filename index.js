@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, Notification, Tray, ipcMain, shell, dialog } from "electron";
+import { app, BrowserWindow, Menu, Tray, ipcMain, shell, dialog } from "electron";
 import { compareVersions } from "compare-versions";
 import { isDeepStrictEqual } from "node:util";
 import log from "electron-log/main.js";
@@ -546,14 +546,10 @@ async function createWindow() {
             return dialog.showErrorBox("Backup Failed", `Could not back up your vault. Ensure Bitwarden Desktop is installed and you have an active internet connection.\n\n${backup.reason}`);
         }
 
-        const notification = new Notification({
+        win.webContents.send("toast", {
             title: "Backup Completed",
-            body: `Your backup has been successfully completed for your Bitwarden vault. Click to open.`,
-        });
-
-        notification.show();
-        notification.on("click", () => {
-            shell.showItemInFolder(backup.location);
+            body: "Your backup has been successfully completed for your Bitwarden vault.",
+            link: { label: "Show in folder", channel: "open-path", data: backup.location, closeOnClick: true },
         });
     });
 
@@ -565,7 +561,7 @@ async function createWindow() {
         }
 
         win.webContents.send("settings", update.data); // Send the updated settings to the renderer process
-        return new Notification({ title: "Settings Updated", body: "Your settings have been updated successfully." }).show();
+        return win.webContents.send("toast", { title: "Settings Updated", body: "Your settings have been updated successfully." });
     });
 
     ipcMain.on("toggle", async (event, user) => {
@@ -600,12 +596,16 @@ async function createWindow() {
             return dialog.showErrorBox("Settings Update Failed", `Could not save your settings. Check that your configuration file isn't corrupted and you have write permissions.\n\n${update.reason}`);
         }
 
-        new Notification({ title: `Backups ${isUser.active ? "Enabled" : "Disabled"}`, body: `You have successfully ${isUser.active ? "enabled" : "disabled"} backups for your Bitwarden account.` }).show();
+        win.webContents.send("toast", { title: `Backups ${isUser.active ? "Enabled" : "Disabled"}`, body: `You have successfully ${isUser.active ? "enabled" : "disabled"} backups for your Bitwarden account.` });
         win.webContents.send("users", users); // Send the updated users to the renderer process
     });
 
     ipcMain.on("restore", async (event, data = null) => {
         return restoreHandler(data);
+    });
+
+    ipcMain.on("open-path", (event, filePath) => {
+        shell.showItemInFolder(filePath);
     });
 
     await updateTray();
