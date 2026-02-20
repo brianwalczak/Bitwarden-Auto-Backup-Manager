@@ -28,6 +28,10 @@ async function saveFile(path, data, { recursive = false, avoidOverwrite = false 
         await fs.mkdir(dir, { recursive: true });
     }
 
+    if (typeof data === "object") {
+        data = JSON.stringify(data, null, 2);
+    }
+
     try {
         if (increment > 0) {
             name = `${name} (${increment})`;

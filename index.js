@@ -197,7 +197,7 @@ async function decryptFile(backup, masterPassword) {
         const folder = path.join(settings.folder, "Restored");
         const file = `Backup Restore (${Date.now()}).json`;
 
-        await saveFile(path.join(folder, file), JSON.stringify(decBackup, null, "  "), { recursive: true });
+        await saveFile(path.join(folder, file), decBackup, { recursive: true });
         return { success: true, location: path.join(folder, file) };
     } catch (error) {
         log.error("[Main Process] Unable to decrypt a backup file:", error);
@@ -276,7 +276,7 @@ async function getSettings() {
         };
 
         if (!isDeepStrictEqual(settings, data)) {
-            await saveFile(config.settings, JSON.stringify(data, null, 2));
+            await saveFile(config.settings, data);
         }
 
         // Update the tray status with existing data (included here to prevent large I/O reads)
@@ -317,7 +317,7 @@ async function updateSettings(data) {
         if (data.folder) data.folder = data.folder.replaceAll("\\", "/"); // Replace all "\" occurrences in the directory with "/"
 
         mergeDeep(settings, data);
-        await saveFile(config.settings, JSON.stringify(settings, null, 2));
+        await saveFile(config.settings, settings);
 
         return { success: true, data: settings };
     } catch (error) {
@@ -679,7 +679,7 @@ async function performBackup(uid) {
         const file = `${formattedDate} (${Date.now()}).json`;
         const folder = path.join(settings.folder, uid);
 
-        await saveFile(path.join(folder, file), JSON.stringify(encBackup, null, 2), { recursive: true });
+        await saveFile(path.join(folder, file), encBackup, { recursive: true });
         await checkOldBackups(); // Check all old backups to see if the configuration by the user exceeded
 
         const backups = await collectBackups(settings.folder);
