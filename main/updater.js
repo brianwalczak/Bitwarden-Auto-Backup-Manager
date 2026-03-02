@@ -5,7 +5,7 @@ import log from "electron-log/main.js";
 import { getWindow } from "./window.js";
 
 const SCHEMA_VERSION = 1;
-const POLICY_SEVERITY = { critical: 3, required: 2, recommended: 1, optional: 0 };
+const POLICY_SEVERITY = { critical: 3, required: 2, recommended: 1, optional: 0 }; // to-do: maybe add a custom update message based on the policy "recommended" or "optional"?? right now it's not doing anything special; channel will already direct the user to the latest version...
 
 async function checkForUpdates() {
     try {
