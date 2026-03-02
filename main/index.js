@@ -6,9 +6,9 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 
-import { exportVault } from "./utils/vault/export.js"; // Exports a user vault from their Bitwarden Desktop configuration
-import { restoreBackup } from "./utils/vault/restore.js"; // Restores a user vault from their KDF iteration and master password (w/ PBKDF2 only)
-import { readFile, saveFile, mergeDeep, fileExists, sanitizeString, getFileName } from "./utils/utils.js";
+import { exportVault } from "../utils/vault/export.js"; // Exports a user vault from their Bitwarden Desktop configuration
+import { restoreBackup } from "../utils/vault/restore.js"; // Restores a user vault from their KDF iteration and master password (w/ PBKDF2 only)
+import { readFile, saveFile, mergeDeep, fileExists, sanitizeString, getFileName } from "../utils/utils.js";
 
 let win = null; // Global variable to hold the window instance
 let tray = null; // Global variable to hold the tray instance
