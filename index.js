@@ -8,7 +8,7 @@ import os from "node:os";
 
 import { exportVault } from "./utils/vault/export.js"; // Exports a user vault from their Bitwarden Desktop configuration
 import { restoreBackup } from "./utils/vault/restore.js"; // Restores a user vault from their KDF iteration and master password (w/ PBKDF2 only)
-import { readFile, saveFile, mergeDeep, fileExists, sanitizeString } from "./utils/utils.js";
+import { readFile, saveFile, mergeDeep, fileExists, sanitizeString, getFileName } from "./utils/utils.js";
 
 let win = null; // Global variable to hold the window instance
 let tray = null; // Global variable to hold the tray instance
@@ -189,16 +189,15 @@ async function updateTray(statusText = null) {
 }
 
 // Decrypts the file provided with a master password
-async function decryptFile(backup, masterPassword) {
+async function decryptFile(backup, masterPassword, date = new Date()) {
     try {
         const settings = await getSettings();
 
         const decBackup = await restoreBackup(backup, masterPassword);
-        const folder = path.join(settings.folder, "Restored");
-        const file = `Backup Restore (${Date.now()}).json`;
+        const file = getFileName({ encrypted: false, date });
 
-        await saveFile(path.join(folder, file), decBackup, { recursive: true });
-        return { success: true, location: path.join(folder, file) };
+        await saveFile(path.join(settings.folder, file), decBackup, { recursive: true });
+        return { success: true, location: path.join(settings.folder, file) };
     } catch (error) {
         log.error("[Main Process] Unable to decrypt a backup file:", error);
         return { success: false, reason: error.toString() };
@@ -375,8 +374,12 @@ async function collectBackups(folder) {
 }
 
 async function restoreHandler(data = null) {
+    let date = new Date();
+    
     try {
         if (typeof data === "string" && path.extname(data)) {
+            const stat = await fs.stat(data);
+            date = stat.birthtime;
             data = await readFile(data);
         } else {
             const { canceled, filePaths } = await dialog.showOpenDialog(win, {
@@ -387,6 +390,8 @@ async function restoreHandler(data = null) {
             });
 
             if (canceled || filePaths.length === 0) return null;
+            const stat = await fs.stat(filePaths[0]);
+            date = stat.birthtime;
             data = await readFile(filePaths[0]);
         }
     } catch (error) {
@@ -414,7 +419,7 @@ async function restoreHandler(data = null) {
             if (!input?.[0]) return;
             const password = input[0];
 
-            const decryption = await decryptFile(data, password);
+            const decryption = await decryptFile(data, password, date);
             if (!decryption.success) {
                 log.error("[Main Process] Unable to decrypt the backup file with the provided master password:", decryption);
                 return dialog.showErrorBox("Decryption Failed", `Could not decrypt your backup file. Please verify your master password and that the file isn't corrupted.\n\n${decryption.reason}`);
@@ -676,7 +681,7 @@ async function performBackup(uid) {
                 year: "numeric",
             })
             .replace(/\//g, "-");
-        const file = `${formattedDate} (${Date.now()}).json`;
+        const file = getFileName({ encrypted: true });
         const folder = path.join(settings.folder, uid);
 
         await saveFile(path.join(folder, file), encBackup, { recursive: true });

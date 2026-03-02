@@ -77,6 +77,20 @@ async function fileExists(filePath) {
     }
 }
 
+// Similar to https://github.com/bitwarden/clients/blob/e82669b99969bbdbc0c815e530043d8ca79ab8d6/libs/tools/export/vault-export/vault-export-core/src/services/export-helper.ts#L1
+function getFileName({ encrypted = true, date = new Date() } = {}) {
+    const dateString = [
+        date.getFullYear(),
+        (date.getMonth() + 1).toString().padStart(2, '0'),
+        date.getDate().toString().padStart(2, '0'),
+        date.getHours().toString().padStart(2, '0'),
+        date.getMinutes().toString().padStart(2, '0'),
+        date.getSeconds().toString().padStart(2, '0')
+    ].join('');
+
+    return `bitwarden_${encrypted ? "encrypted_" : "decrypted_"}export_${dateString}.json`;
+}
+
 const sanitizeString = (str) => {
     if (typeof str !== "string") str = str.toString();
 
@@ -84,4 +98,4 @@ const sanitizeString = (str) => {
     return str.replaceAll(emailRegex, "[email redacted]");
 };
 
-export { joinUrl, readFile, saveFile, mergeDeep, fileExists, sanitizeString };
+export { joinUrl, readFile, saveFile, mergeDeep, fileExists, getFileName, sanitizeString };
