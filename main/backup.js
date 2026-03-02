@@ -79,10 +79,14 @@ async function backgroundBackupCheck() {
                 getWindow().webContents.send("settings", settings); // Send the updated settings to the renderer process
             }
         }
+
+        globals.silentBgError = false; // it was successful, remove the silent error flag
     } catch (error) {
-        log.error("[Main Process] Unable to perform background backup check:", error);
-        dialog.showErrorBox("Background Backup Error", `Failed to check for upcoming scheduled backups.\n\n${error.toString()}`);
-        process.exit();
+        if (!globals.silentBgError) {
+            log.error("[Main Process] Unable to perform background backup check:", error);
+            dialog.showErrorBox("Background Backup Error", `Failed to check for upcoming scheduled backups.\n\n${error.toString()}`);
+            globals.silentBgError = true; // set flag to true to prevent multiple error popups
+        }
     }
 
     return true;
