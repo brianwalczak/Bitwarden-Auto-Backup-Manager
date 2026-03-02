@@ -73,4 +73,4 @@ async function updateStatusCache(users) {
     }
 }
 
-export { spawnTray, updateTray, updateStatusCache };
+export { updateTray, updateStatusCache };

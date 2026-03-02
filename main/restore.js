@@ -93,4 +93,4 @@ async function decryptFile(backup, masterPassword, meta = {}) {
     }
 }
 
-export { restoreHandler, decryptFile };
+export { restoreHandler };

@@ -162,4 +162,4 @@ async function collectBackups(folder) {
     return backups.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 }
 
-export { performBackup, checkOldBackups, backgroundBackupCheck, getNextBackup, collectBackups };
+export { performBackup, backgroundBackupCheck, collectBackups };
