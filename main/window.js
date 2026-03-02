@@ -113,7 +113,7 @@ async function createWindow() {
             },
         },
         {
-            label: "Minimize to Tray",
+            label: "Quit",
             click() {
                 win.hide();
             },
