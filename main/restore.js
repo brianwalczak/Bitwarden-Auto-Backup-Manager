@@ -9,12 +9,14 @@ import { getWindow, prompt } from "./window.js";
 import { getSettings } from "./settings.js";
 
 async function restoreHandler(data = null) {
-    let date = new Date();
+    let meta = { date: new Date(), path: null };
     
     try {
         if (typeof data === "string" && path.extname(data)) {
             const stat = await fs.stat(data);
-            date = stat.birthtime;
+
+            meta.path = data;
+            meta.date = stat.birthtime;
             data = await readFile(data);
         } else {
             const { canceled, filePaths } = await dialog.showOpenDialog(getWindow(), {
@@ -26,7 +28,9 @@ async function restoreHandler(data = null) {
 
             if (canceled || filePaths.length === 0) return null;
             const stat = await fs.stat(filePaths[0]);
-            date = stat.birthtime;
+            
+            meta.path = filePaths[0];
+            meta.date = stat.birthtime;
             data = await readFile(filePaths[0]);
         }
     } catch (error) {
@@ -54,7 +58,7 @@ async function restoreHandler(data = null) {
             if (!input?.[0]) return;
             const password = input[0];
 
-            const decryption = await decryptFile(data, password, date);
+            const decryption = await decryptFile(data, password, meta);
             if (!decryption.success) {
                 log.error("[Main Process] Unable to decrypt the backup file with the provided master password:", decryption);
                 return dialog.showErrorBox("Decryption Failed", `Could not decrypt your backup file. Please verify your master password and that the file isn't corrupted.\n\n${decryption.reason}`);
@@ -75,15 +79,14 @@ async function restoreHandler(data = null) {
 }
 
 // Decrypts the file provided with a master password
-async function decryptFile(backup, masterPassword, date = new Date()) {
+async function decryptFile(backup, masterPassword, meta = {}) {
     try {
-        const settings = await getSettings();
-
         const decBackup = await restoreBackup(backup, masterPassword);
-        const file = getFileName({ encrypted: false, date });
+        const file = getFileName({ encrypted: false, date: meta?.date });
+        const folder = meta.path ? path.dirname(meta.path) : (await getSettings()).folder;
 
-        await saveFile(path.join(settings.folder, file), decBackup, { recursive: true });
-        return { success: true, location: path.join(settings.folder, file) };
+        await saveFile(path.join(folder, file), decBackup, { recursive: true });
+        return { success: true, location: path.join(folder, file) };
     } catch (error) {
         log.error("[Main Process] Unable to decrypt a backup file:", error);
         return { success: false, reason: error.toString() };
