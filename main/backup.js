@@ -72,7 +72,7 @@ async function backgroundBackupCheck() {
             if (user.nextDate && Date.now() >= user.nextDate) {
                 const backup = await performBackup(user.uid); // Perform and save the backup
 
-                user.nextDate = await getNextBackup(); // Schedule the next backup time
+                user.nextDate = getNextBackup(settings.occurrence); // Schedule the next backup time
                 if (backup.success) user.lastBackup = Date.now(); // Set the last backup time
                 await updateSettings(settings);
 
@@ -92,14 +92,12 @@ async function backgroundBackupCheck() {
     return true;
 }
 
-// Get the next backup date in Epoch time based on settings
-async function getNextBackup() {
-    const settings = await getSettings();
-
+// Get the next backup date in Epoch time based on occurrence
+function getNextBackup(occurrence) {
     let currentTime = Date.now();
     let equationInMs = 0;
 
-    switch (settings.occurrence) {
+    switch (occurrence) {
         case "day":
             equationInMs = 24 * 60 * 60 * 1000;
             break;
