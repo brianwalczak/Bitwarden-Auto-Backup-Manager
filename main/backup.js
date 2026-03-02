@@ -22,7 +22,7 @@ async function performBackup(uid) {
         await checkOldBackups(); // Check all old backups to see if the configuration by the user exceeded
 
         const backups = await collectBackups(settings.folder);
-        getWindow().webContents.send("backups", backups);
+        getWindow()?.webContents.send("backups", backups);
 
         return { success: true, location: path.join(folder, file) };
     } catch (error) {
@@ -76,7 +76,7 @@ async function backgroundBackupCheck() {
                 if (backup.success) user.lastBackup = Date.now(); // Set the last backup time
                 await updateSettings(settings);
 
-                getWindow().webContents.send("settings", settings); // Send the updated settings to the renderer process
+                getWindow()?.webContents.send("settings", settings); // Send the updated settings to the renderer process
             }
         }
 

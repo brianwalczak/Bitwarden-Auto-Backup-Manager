@@ -7,7 +7,11 @@ import { performBackup } from "./backup.js";
 import { getActiveUsers } from "./users.js";
 import { getWindow } from "./window.js";
 
+let injected = false;
+
 async function injectIpcHandlers() {
+    if (injected) return;
+
     ipcMain.on("backup", async (event, user) => {
         const users = await getActiveUsers(false);
         const isUser = users.some((u) => u.uid === user.uid);
@@ -23,7 +27,7 @@ async function injectIpcHandlers() {
             return dialog.showErrorBox("Backup Failed", `Could not back up your vault. Ensure Bitwarden Desktop is installed and you have an active internet connection.\n\n${backup.reason}`);
         }
 
-        getWindow().webContents.send("toast", {
+        getWindow()?.webContents.send("toast", {
             title: "Backup Completed",
             body: "Your backup has been successfully completed for your Bitwarden vault.",
             link: { label: "Show in folder", channel: "open-path", data: backup.location, closeOnClick: true },
@@ -37,8 +41,8 @@ async function injectIpcHandlers() {
             return dialog.showErrorBox("Settings Update Failed", `Could not save your settings. Check that your configuration file isn't corrupted and you have write permissions.\n\n${update.reason}`);
         }
 
-        getWindow().webContents.send("settings", update.data); // Send the updated settings to the renderer process
-        return getWindow().webContents.send("toast", { title: "Settings Updated", body: "Your settings have been updated successfully." });
+        getWindow()?.webContents.send("settings", update.data); // Send the updated settings to the renderer process
+        return getWindow()?.webContents.send("toast", { title: "Settings Updated", body: "Your settings have been updated successfully." });
     });
 
     ipcMain.on("toggle", async (event, user) => {
@@ -73,8 +77,8 @@ async function injectIpcHandlers() {
             return dialog.showErrorBox("Settings Update Failed", `Could not save your settings. Check that your configuration file isn't corrupted and you have write permissions.\n\n${update.reason}`);
         }
 
-        getWindow().webContents.send("toast", { title: `Backups ${isUser.active ? "Enabled" : "Disabled"}`, body: `You have successfully ${isUser.active ? "enabled" : "disabled"} backups for your Bitwarden account.` });
-        getWindow().webContents.send("users", users); // Send the updated users to the renderer process
+        getWindow()?.webContents.send("toast", { title: `Backups ${isUser.active ? "Enabled" : "Disabled"}`, body: `You have successfully ${isUser.active ? "enabled" : "disabled"} backups for your Bitwarden account.` });
+        getWindow()?.webContents.send("users", users); // Send the updated users to the renderer process
     });
 
     ipcMain.on("restore", async (event, data = null) => {
@@ -84,6 +88,8 @@ async function injectIpcHandlers() {
     ipcMain.on("open-path", (event, filePath) => {
         shell.showItemInFolder(filePath);
     });
+
+    injected = true;
 }
 
 export { injectIpcHandlers };

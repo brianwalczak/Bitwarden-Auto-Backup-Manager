@@ -62,7 +62,7 @@ async function checkForUpdates() {
             })
             .catch(() => {});
         } else {
-            getWindow().webContents.send("version", {
+            getWindow()?.webContents.send("version", {
                 currentVersion,
                 upToDate: upToDate,
                 downloadUrl: downloadUrl

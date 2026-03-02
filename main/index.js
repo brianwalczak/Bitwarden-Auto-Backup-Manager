@@ -5,7 +5,7 @@ import path from "node:path";
 import os from "node:os";
 
 import { fileExists, sanitizeString } from "../utils/utils.js";
-import { getWindow, createWindow } from "./window.js";
+import { showWindow, createWindow } from "./window.js";
 import { backgroundBackupCheck } from "./backup.js";
 
 log.initialize();
@@ -34,17 +34,8 @@ if (!app.requestSingleInstanceLock()) {
 } else {
     // If we are the first instance, create the window and detect for other instances
 
-    app.on("second-instance", () => {
-        // Someone tried to run a second instance while this one is already open, focus the existing window
-        if (getWindow()) {
-            getWindow().show();
-            getWindow().reload();
-            getWindow().focus();
-        }
-    });
-
-    // Create the window when the app is ready
-    app.whenReady().then(createWindow);
+    app.on("second-instance", showWindow); // Someone tried to run a second instance while this one is already open, focus the existing window
+    app.whenReady().then(createWindow); // Create the window when the app is ready
 }
 
 // Checks if the user has the Bitwarden Desktop app and proper data installed.

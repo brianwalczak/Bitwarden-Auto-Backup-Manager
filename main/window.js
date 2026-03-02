@@ -16,10 +16,19 @@ function getWindow() {
     return win;
 }
 
+async function showWindow() {
+    if (!win) return await createWindow();
+
+    win.show();
+    win.reload();
+    win.focus();
+    return win;
+}
+
 function prompt(config) {
     return new Promise((resolve) => {
         const modal = new BrowserWindow({
-            parent: getWindow(),
+            parent: getWindow() ?? undefined,
             modal: true,
             show: false,
             width: 420,
@@ -116,7 +125,7 @@ async function createWindow() {
         {
             label: "Quit",
             click() {
-                win.hide();
+                win.close();
             },
         },
     ]);
@@ -125,7 +134,8 @@ async function createWindow() {
     win.on("close", (event) => {
         if (!globals.isQuitting) {
             event.preventDefault();
-            win.hide(); // Hide the window instead to keep it running in the background
+            win.destroy();
+            win = null;
         }
     });
 
@@ -146,7 +156,8 @@ async function createWindow() {
     });
 
     injectIpcHandlers();
-    await updateTray();
+    updateTray();
+    return win;
 }
 
-export { getWindow, createWindow, prompt };
+export { getWindow, showWindow, createWindow, prompt };

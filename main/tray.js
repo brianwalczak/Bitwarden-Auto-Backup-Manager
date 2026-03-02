@@ -2,7 +2,7 @@ import { app, Menu, Tray } from "electron";
 import path from "node:path";
 
 import { restoreHandler } from "./restore.js";
-import { getWindow } from "./window.js";
+import { showWindow } from "./window.js";
 
 let tray = null; // holds the tray instance
 let statusCache = null; // holds cached status to prevent unnecessary tray updates
@@ -12,12 +12,7 @@ function spawnTray() {
     
     tray = new Tray(app.isPackaged ? path.join(process.resourcesPath, "icon.ico") : path.join(import.meta.dirname, "..", "build", "icon.ico"));
     tray.setToolTip("Bitwarden Auto-Backup Manager");
-
-    tray.on("click", () => {
-        getWindow().show();
-        getWindow().reload();
-        getWindow().focus();
-    });
+    tray.on("click", showWindow);
 }
 
 // Creates the system tray app icon
@@ -32,12 +27,7 @@ async function updateTray(statusText = null) {
         { type: "separator" },
         {
             label: "Backup Now",
-            click: () => {
-                // already opens at home page
-                getWindow().reload();
-                getWindow().show();
-                getWindow().focus();
-            },
+            click: showWindow,
         },
         {
             label: "Restore Backup",
@@ -46,16 +36,16 @@ async function updateTray(statusText = null) {
         { type: "separator" },
         {
             label: "Settings",
-            click: () => {
-                getWindow().show();
-                getWindow().webContents.send("tray_click", { action: "settings" });
+            click: async () => {
+                const win = await showWindow();
+                win.webContents.send("tray_click", { action: "settings" });
             },
         },
         {
             label: "View Logs",
-            click: () => {
-                getWindow().show();
-                getWindow().webContents.send("tray_click", { action: "backups" });
+            click: async () => {
+                const win = await showWindow();
+                win.webContents.send("tray_click", { action: "backups" });
             },
         },
         { type: "separator" },

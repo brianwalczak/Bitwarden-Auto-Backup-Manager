@@ -19,7 +19,7 @@ async function restoreHandler(data = null) {
             meta.date = stat.birthtime;
             data = await readFile(data);
         } else {
-            const { canceled, filePaths } = await dialog.showOpenDialog(getWindow(), {
+            const { canceled, filePaths } = await dialog.showOpenDialog(getWindow() ?? undefined, {
                 title: "Select a Backup",
                 buttonLabel: "Restore",
                 filters: [{ name: "Bitwarden Vault (.json)", extensions: ["json"] }],
@@ -64,7 +64,7 @@ async function restoreHandler(data = null) {
                 return dialog.showErrorBox("Decryption Failed", `Could not decrypt your backup file. Please verify your master password and that the file isn't corrupted.\n\n${decryption.reason}`);
             }
 
-            getWindow().webContents.send("toast", {
+            getWindow()?.webContents.send("toast", {
                 title: "Restore Completed",
                 body: "Your vault has been decrypted and saved locally. Keep this file safe - it contains all of your unencrypted vault data.",
                 link: { label: "Show in folder", channel: "open-path", data: decryption.location, closeOnClick: true },
