@@ -7,6 +7,7 @@
     "main": "main/index.js",
     "type": "module",
     "scripts": {
+        "start": "electron .",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "pack": "electron-builder --dir",

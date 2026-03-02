@@ -7,6 +7,7 @@ import os from "node:os";
 import { fileExists, sanitizeString } from "../utils/utils.js";
 import { getWindow, createWindow } from "./window.js";
 import { backgroundBackupCheck } from "./backup.js";
+import { injectIpcHandlers } from "./ipc.js";
 
 log.initialize();
 
@@ -44,7 +45,10 @@ if (!app.requestSingleInstanceLock()) {
     });
 
     // Create the window when the app is ready
-    app.whenReady().then(createWindow);
+    app.whenReady().then(async () => {
+        injectIpcHandlers();
+        await createWindow();
+    });
 }
 
 // Checks if the user has the Bitwarden Desktop app and proper data installed.
@@ -64,7 +68,7 @@ async function checkRequirements() {
     }
 
     if (!isStandard && !isMicrosoft) {
-        dialog.showErrorBox("Bitwarden Not Found", "Could not locate the neccessary app data for the Bitwarden Desktop app. Please install Bitwarden Desktop and sync your vault first.");
+        dialog.showErrorBox("Bitwarden Not Found", "Could not locate the necessary app data for the Bitwarden Desktop app. Please install Bitwarden Desktop and sync your vault first.");
         process.exit();
     } else if (isStandard) {
         globals.config.data = bitwardenData.standard;
@@ -105,5 +109,5 @@ app.on("activate", () => {
 
 // Run backup check every minute **at all times**
 // This can run like this, because whenever a user closes the software, it will always run in the background
-// Don't worry, it takes up little memory, whilelist ensuring that your vault is always backed up! :)
+// Don't worry, it takes up little memory, while still ensuring that your vault is always backed up! :)
 setInterval(backgroundBackupCheck, 60000);

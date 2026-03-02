@@ -3,7 +3,6 @@ import log from "electron-log/main.js";
 import path from "node:path";
 
 import { checkForUpdates } from "./updater.js";
-import { injectIpcHandlers } from "./ipc.js";
 import { collectBackups } from "./backup.js";
 import { getSettings } from "./settings.js";
 import { getActiveUsers } from "./users.js";
@@ -114,7 +113,7 @@ async function createWindow() {
             },
         },
         {
-            label: "Quit",
+            label: "Minimize to Tray",
             click() {
                 win.hide();
             },
@@ -145,7 +144,6 @@ async function createWindow() {
         }
     });
 
-    injectIpcHandlers();
     await updateTray();
 }
 

@@ -41,20 +41,20 @@ async function checkOldBackups() {
             const files = await fs.readdir(folder);
             if (files.length <= Number(settings.keeping)) continue; // Don't continue if the limit hasn't yet been exceeded
 
-            let oldestFile = null;
-            let oldestBirthtime = Infinity;
+            const statsEntries = await Promise.all(
+                files.map(async (file) => {
+                    const filePath = path.join(folder, file);
+                    const stats = await fs.stat(filePath);
+                    return { file, birthtimeMs: stats.birthtimeMs };
+                })
+            );
 
-            for (const file of files) {
-                const filePath = path.join(folder, file);
-                const stats = await fs.stat(filePath);
+            const sortedFiles = statsEntries.sort((a, b) => a.birthtimeMs - b.birthtimeMs).map((e) => e.file);
 
-                if (stats.birthtimeMs < oldestBirthtime) {
-                    oldestFile = filePath;
-                    oldestBirthtime = stats.birthtimeMs;
-                }
+            while (sortedFiles.length > Number(settings.keeping)) {
+                const oldest = sortedFiles.shift();
+                await fs.unlink(path.join(folder, oldest));
             }
-
-            if (oldestFile) await fs.unlink(oldestFile); // Delete the oldest file to free up space
         } catch {
             continue;
         }
@@ -72,7 +72,7 @@ async function backgroundBackupCheck() {
             if (user.nextDate && Date.now() >= user.nextDate) {
                 const backup = await performBackup(user.uid); // Perform and save the backup
 
-                user.nextDate = await getNextBackup(); // Schedule the next backup time
+                user.nextDate = getNextBackup(settings.occurrence); // Schedule the next backup time
                 if (backup.success) user.lastBackup = Date.now(); // Set the last backup time
                 await updateSettings(settings);
 
@@ -93,27 +93,19 @@ async function backgroundBackupCheck() {
 }
 
 // Get the next backup date in Epoch time based on settings
-async function getNextBackup() {
-    const settings = await getSettings();
-
-    let currentTime = Date.now();
-    let equationInMs = 0;
-
-    switch (settings.occurrence) {
-        case "day":
-            equationInMs = 24 * 60 * 60 * 1000;
-            break;
+function getNextBackup(occurrence) {
+    switch (occurrence) {
+        case "month": {
+            const nextDate = new Date();
+            nextDate.setMonth(nextDate.getMonth() + 1);
+            return nextDate.getTime();
+        }
         case "week":
-            equationInMs = 7 * 24 * 60 * 60 * 1000;
-            break;
-        case "month":
-            equationInMs = 30 * 24 * 60 * 60 * 1000;
-            break;
+            return Date.now() + 7 * 24 * 60 * 60 * 1000;
+        case "day":
         default:
-            equationInMs = 24 * 60 * 60 * 1000;
+            return Date.now() + 24 * 60 * 60 * 1000;
     }
-
-    return currentTime + equationInMs;
 }
 
 // Collects all backups from the user's backup folder

@@ -81,12 +81,12 @@ async function fileExists(filePath) {
 function getFileName({ encrypted = true, date = new Date() } = {}) {
     const dateString = [
         date.getFullYear(),
-        (date.getMonth() + 1).toString().padStart(2, '0'),
-        date.getDate().toString().padStart(2, '0'),
-        date.getHours().toString().padStart(2, '0'),
-        date.getMinutes().toString().padStart(2, '0'),
-        date.getSeconds().toString().padStart(2, '0')
-    ].join('');
+        (date.getMonth() + 1).toString().padStart(2, "0"),
+        date.getDate().toString().padStart(2, "0"),
+        date.getHours().toString().padStart(2, "0"),
+        date.getMinutes().toString().padStart(2, "0"),
+        date.getSeconds().toString().padStart(2, "0")
+    ].join("");
 
     return `bitwarden_${encrypted ? "encrypted_" : "decrypted_"}export_${dateString}.json`;
 }
