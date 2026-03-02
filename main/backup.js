@@ -78,8 +78,6 @@ async function backgroundBackupCheck() {
 
                 getWindow().webContents.send("settings", settings); // Send the updated settings to the renderer process
             }
-
-            continue;
         }
     } catch (error) {
         log.error("[Main Process] Unable to perform background backup check:", error);
