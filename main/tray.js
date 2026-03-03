@@ -1,4 +1,4 @@
-import { app, Menu, Tray } from "electron";
+import { app, Menu, Tray, nativeImage } from "electron";
 import path from "node:path";
 
 import { restoreHandler } from "./restore.js";
@@ -9,8 +9,11 @@ let statusCache = null; // holds cached status to prevent unnecessary tray updat
 
 function spawnTray() {
     if (tray) return; // prevent multiple tray instances
+
+    const iconFull = nativeImage.createFromPath(app.isPackaged ? path.join(process.resourcesPath, 'icon.png') : path.join(import.meta.dirname, "..", "build", 'icon.png'));
+    const icon = iconFull.resize({ width: 32, height: 32 });
     
-    tray = new Tray(app.isPackaged ? path.join(process.resourcesPath, "icon.ico") : path.join(import.meta.dirname, "..", "build", "icon.ico"));
+    tray = new Tray(icon);
     tray.setToolTip("Bitwarden Auto-Backup Manager");
     tray.on("click", showWindow);
 }
