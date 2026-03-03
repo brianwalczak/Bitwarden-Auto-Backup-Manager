@@ -94,24 +94,23 @@ async function backgroundBackupCheck() {
 
 // Get the next backup date in Epoch time based on occurrence
 function getNextBackup(occurrence) {
-    let currentTime = Date.now();
-    let equationInMs = 0;
+    let now = new Date();
 
     switch (occurrence) {
         case "day":
-            equationInMs = 24 * 60 * 60 * 1000;
+            now.setDate(now.getDate() + 1);
             break;
         case "week":
-            equationInMs = 7 * 24 * 60 * 60 * 1000;
+            now.setDate(now.getDate() + 7);
             break;
         case "month":
-            equationInMs = 30 * 24 * 60 * 60 * 1000;
+            now.setMonth(now.getMonth() + 1);
             break;
-        default:
-            equationInMs = 24 * 60 * 60 * 1000;
+        default: // day
+            now.setDate(now.getDate() + 1);
     }
 
-    return currentTime + equationInMs;
+    return now.getTime();
 }
 
 // Collects all backups from the user's backup folder
