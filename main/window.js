@@ -7,7 +7,7 @@ import { injectIpcHandlers } from "./ipc.js";
 import { collectBackups } from "./backup.js";
 import { getSettings } from "./settings.js";
 import { getActiveUsers } from "./users.js";
-import { updateTray } from "./tray.js";
+import { updateTray, updateStatusCache } from "./tray.js";
 import { globals } from "./shared.js";
 
 let win = null; // holds the window instance
@@ -143,6 +143,8 @@ async function createWindow() {
         checkForUpdates(); // Check for updates to inform user
         const settings = await getSettings();
         const backups = await collectBackups(settings.folder);
+
+        await updateStatusCache(settings.users); // Update the tray status on startup
 
         try {
             const users = await getActiveUsers(true);
