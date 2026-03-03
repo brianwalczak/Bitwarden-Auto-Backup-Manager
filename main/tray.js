@@ -66,7 +66,7 @@ async function updateStatusCache(users) {
         }
     }
 
-    statusCache = latestBackup > 0 ? `✅ Last automatic backup: ${new Date(latestBackup).toLocaleString()}` : "⚠️ Last automatic backup: Never";
+    statusCache = latestBackup > 0 ? `✅ Last automatic backup: ${new Date(latestBackup).toLocaleDateString()} at ${new Date(latestBackup).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "⚠️ Last automatic backup: Never";
 
     if (oldStatus !== statusCache) {
         updateTray(statusCache);

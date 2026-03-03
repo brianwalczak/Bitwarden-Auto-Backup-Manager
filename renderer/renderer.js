@@ -125,7 +125,7 @@ window.ipcRenderer.on("settings", (event, data) => {
         }
 
         if (latestBackup > 0) {
-            $("#last_backup").text(new Date(latestBackup).toISOString().replace("T", " ").replace("Z", "").split(".")[0]);
+            $("#last_backup").text(`${new Date(latestBackup).toLocaleDateString()} at ${new Date(latestBackup).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`);
         } else {
             $("#last_backup").text("Never");
         }
