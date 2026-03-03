@@ -37,7 +37,8 @@
                         "universal"
                     ]
                 }
-            ]
+            ],
+            "category": "public.app-category.utilities"
         },
         "linux": {
             "target": [
@@ -55,7 +56,8 @@
                         "arm64"
                     ]
                 }
-            ]
+            ],
+            "category": "Utility"
         },
         "publish": null,
         "nsis": {
