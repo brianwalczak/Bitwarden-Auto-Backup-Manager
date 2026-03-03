@@ -1,4 +1,3 @@
-import glob from "glob";
 import path from "node:path";
 import os from "node:os";
 import fs from "node:fs/promises";
@@ -25,12 +24,21 @@ const paths = {
 async function globCheck() {
     try {
         // Check if snap is using revisions (it's finicky sometimes)
-        const [config, appdata] = await Promise.all([
-            glob(path.join(home, "snap/bitwarden/*/.config/Bitwarden/data.json")),
-            glob(path.join(home, "snap/bitwarden/*/appdata/data.json")),
-        ]);
+        const snapRoot = path.join(home, "snap", "bitwarden");
+        const entries = await fs.readdir(snapRoot, { withFileTypes: true });
 
-        return [...config, ...appdata];
+        const revisions = entries.filter((entry) => entry.isDirectory())
+            .map((entry) => entry.name)
+            .filter((name) => name !== "current");
+
+        const paths = [];
+
+        for (const revision of revisions) {
+            paths.push(path.join(snapRoot, revision, ".config", "Bitwarden", "data.json"));
+            paths.push(path.join(snapRoot, revision, "appdata", "data.json"));
+        }
+
+        return paths;
     } catch {
         return [];
     }
