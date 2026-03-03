@@ -12,7 +12,7 @@ async function restoreHandler(data = null) {
     let meta = { date: new Date(), path: null };
     
     try {
-        if (typeof data === "string" && path.extname(data)) {
+        if (typeof data === "string" && path.isAbsolute(data)) {
             const stat = await fs.stat(data);
 
             meta.path = data;
