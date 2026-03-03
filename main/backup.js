@@ -19,7 +19,7 @@ async function performBackup(uid) {
         const folder = path.join(settings.folder, uid);
 
         await saveFile(path.join(folder, file), encBackup, { recursive: true });
-        await checkOldBackups(); // Check all old backups to see if the configuration by the user exceeded
+        await checkOldBackups(settings); // Check all old backups to see if the configuration by the user exceeded
 
         const backups = await collectBackups(settings.folder);
         getWindow()?.webContents.send("backups", backups);
@@ -32,9 +32,7 @@ async function performBackup(uid) {
 }
 
 // Deletes old backups if they are more than the user specified to hold at once
-async function checkOldBackups() {
-    const settings = await getSettings();
-
+async function checkOldBackups(settings) {
     for (const user of settings.users) {
         try {
             const folder = path.join(settings.folder, user.uid);

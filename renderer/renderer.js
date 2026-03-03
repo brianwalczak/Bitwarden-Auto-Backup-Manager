@@ -68,8 +68,6 @@ window.ipcRenderer.on("users", (event, data) => {
         }
     });
 
-    if (data.length === 0) return $(".status").text("Your Bitwarden accounts are not logged in to Bitwarden Desktop.").css("color", "orange");
-
     if (isProtected) {
         return $(".status")
             .text(data.length > 1 ? "Your Bitwarden accounts are protected with automatic backups." : "Your Bitwarden account is protected with automatic backups.")
