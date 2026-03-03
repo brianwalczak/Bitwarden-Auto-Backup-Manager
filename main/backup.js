@@ -39,22 +39,23 @@ async function checkOldBackups() {
         try {
             const folder = path.join(settings.folder, user.uid);
             const files = await fs.readdir(folder);
-            if (files.length <= Number(settings.keeping)) continue; // Don't continue if the limit hasn't yet been exceeded
+            const keeping = Number(settings.keeping);
+            if (files.length <= keeping) continue; // Don't continue if the limit hasn't yet been exceeded
 
-            let oldestFile = null;
-            let oldestBirthtime = Infinity;
+            const fileStats = await Promise.all(
+                files.map(async (file) => {
+                    const filePath = path.join(folder, file);
+                    const stats = await fs.stat(filePath);
+                    return { filePath, birthtimeMs: stats.birthtimeMs };
+                })
+            );
 
-            for (const file of files) {
-                const filePath = path.join(folder, file);
-                const stats = await fs.stat(filePath);
+            fileStats.sort((a, b) => a.birthtimeMs - b.birthtimeMs); // Sort oldest first
+            const toDelete = fileStats.slice(0, fileStats.length - keeping);
 
-                if (stats.birthtimeMs < oldestBirthtime) {
-                    oldestFile = filePath;
-                    oldestBirthtime = stats.birthtimeMs;
-                }
+            for (const file of toDelete) {
+                await fs.unlink(file.filePath);
             }
-
-            if (oldestFile) await fs.unlink(oldestFile); // Delete the oldest file to free up space
         } catch {
             continue;
         }
