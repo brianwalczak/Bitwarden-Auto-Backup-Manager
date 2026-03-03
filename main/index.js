@@ -1,12 +1,11 @@
 import { app, BrowserWindow, dialog } from "electron";
-import { globals } from "./shared.js";
 import log from "electron-log/main.js";
-import path from "node:path";
-import os from "node:os";
 
-import { fileExists, sanitizeString } from "../utils/utils.js";
+import { sanitizeString } from "../utils/utils.js";
 import { showWindow, createWindow } from "./window.js";
 import { backgroundBackupCheck } from "./backup.js";
+import { getPlatformPath } from "./platforms.js";
+import { globals } from "./shared.js";
 
 log.initialize();
 
@@ -42,29 +41,17 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 // Checks if the user has the Bitwarden Desktop app and proper data installed.
+// https://bitwarden.com/help/data-storage/
 async function checkRequirements() {
-    const bitwardenData = {
-        standard: path.join(os.homedir(), "AppData/Roaming/Bitwarden", "data.json"),
-        microsoft: path.join(os.homedir(), "AppData/Local/Packages/8bitSolutionsLLC.bitwardendesktop_h4e712dmw3xyy/LocalCache/Roaming/Bitwarden", "data.json"),
-    };
+    const platformPath = await getPlatformPath();
 
-    const isStandard = await fileExists(bitwardenData.standard); // Standard app installation (bw desktop)
-    const isMicrosoft = await fileExists(bitwardenData.microsoft); // Microsoft Store app installation (bw desktop)
-
-    if (process.platform !== "win32") {
-        // Check operating system (in case somebody re-deploys)
-        dialog.showErrorBox("Unsupported OS", "Sorry, your operating system is unsupported for Bitwarden Auto-Backup Manager.");
-        process.exit();
-    }
-
-    if (!isStandard && !isMicrosoft) {
+    if (!platformPath) {
         dialog.showErrorBox("Bitwarden Not Found", "Could not locate the necessary app data for the Bitwarden Desktop app. Please install Bitwarden Desktop and sync your vault first.");
         process.exit();
-    } else if (isStandard) {
-        globals.config.data = bitwardenData.standard;
-    } else if (isMicrosoft) {
-        globals.config.data = bitwardenData.microsoft;
     }
+
+    globals.config.data = platformPath;
+    return true;
 }
 
 app.on("window-all-closed", () => {

@@ -67,16 +67,6 @@ function mergeDeep(target, ...sources) {
     return mergeDeep(target, ...sources);
 }
 
-// Function to check if a file/directory exists in the system
-async function fileExists(filePath) {
-    try {
-        await fs.access(filePath);
-        return true; // File exists
-    } catch {
-        return false;
-    }
-}
-
 // Similar to https://github.com/bitwarden/clients/blob/e82669b99969bbdbc0c815e530043d8ca79ab8d6/libs/tools/export/vault-export/vault-export-core/src/services/export-helper.ts#L1
 function getFileName({ encrypted = true, date = new Date() } = {}) {
     const dateString = [
@@ -98,4 +88,4 @@ const sanitizeString = (str) => {
     return str.replaceAll(emailRegex, "[email redacted]");
 };
 
-export { joinUrl, readFile, saveFile, mergeDeep, fileExists, getFileName, sanitizeString };
+export { joinUrl, readFile, saveFile, mergeDeep, getFileName, sanitizeString };
