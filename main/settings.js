@@ -13,11 +13,6 @@ async function getSettings() {
     try {
         const settings = await readFile(globals.config.settings);
 
-        if (settings?.users) {
-            const users = await getActiveUsers(false);
-            settings.users = settings.users.filter((user) => users.find((u) => u.uid === user.uid)); // If the user is not found in the Bitwarden Desktop app, remove them from the settings
-        }
-
         const data = {
             occurrence: settings?.occurrence ?? "day",
             folder: (settings?.folder ?? path.join(os.homedir(), "Bitwarden Backups")).replaceAll("\\", "/"),
@@ -29,7 +24,6 @@ async function getSettings() {
             await saveFile(globals.config.settings, data);
         }
 
-        await updateStatusCache(data.users);
         return data;
     } catch (error) {
         log.warn("[Main Process] Unable to read the settings file, using generic settings configuration:", error);
@@ -52,7 +46,14 @@ async function updateSettings(data) {
         if (data.folder) data.folder = data.folder.replaceAll("\\", "/"); // Replace all "\" occurrences in the directory with "/"
 
         mergeDeep(settings, data);
+
+        const users = await getActiveUsers(false);
+        if (users) {
+            settings.users = settings.users.filter((user) => users.find((u) => u.uid === user.uid));
+        }
+
         await saveFile(globals.config.settings, settings);
+        await updateStatusCache(settings.users);
 
         return { success: true, data: settings };
     } catch (error) {
