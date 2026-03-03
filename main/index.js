@@ -35,7 +35,10 @@ if (!app.requestSingleInstanceLock()) {
     // If we are the first instance, create the window and detect for other instances
 
     app.on("second-instance", showWindow); // Someone tried to run a second instance while this one is already open, focus the existing window
-    app.whenReady().then(createWindow); // Create the window when the app is ready
+    app.whenReady().then(async () => {
+        await checkRequirements();
+        createWindow();
+    });
 }
 
 // Checks if the user has the Bitwarden Desktop app and proper data installed.
@@ -73,7 +76,7 @@ app.on("before-quit", () => {
 });
 
 // Run when the app is ready and started
-app.on("ready", async () => {
+app.on("ready", () => {
     // Enable auto-backup to run in the background at startup
     if (app.isPackaged) {
         app.setLoginItemSettings({
@@ -82,9 +85,6 @@ app.on("ready", async () => {
             args: ["--quiet"],
         });
     }
-
-    // Simple check if the user has the Bitwarden Desktop app and proper data installed.
-    await checkRequirements();
 });
 
 // Create a window when the app is activated (if one doesn't exist)
