@@ -69,7 +69,6 @@ app.on("ready", () => {
     if (app.isPackaged) {
         app.setLoginItemSettings({
             openAtLogin: true,
-            path: app.getPath("exe"),
             args: ["--quiet"],
         });
     }
