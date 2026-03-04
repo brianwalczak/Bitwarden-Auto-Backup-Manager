@@ -4,7 +4,7 @@ import log from "electron-log/main.js";
 import { sanitizeString } from "../utils/utils.js";
 import { showWindow, createWindow } from "./window.js";
 import { backgroundBackupCheck } from "./backup.js";
-import { getPlatformPath } from "./platforms.js";
+import { getPlatformPath, setOpenAtLogin } from "./platforms.js";
 import { checkPermissions } from "./permissions.js";
 import { globals } from "./shared.js";
 
@@ -70,13 +70,17 @@ app.on("before-quit", () => {
 });
 
 // Run when the app is ready and started
-app.on("ready", () => {
+app.on("ready", async () => {
     // Enable auto-backup to run in the background at startup
     if (app.isPackaged) {
         app.setLoginItemSettings({
             openAtLogin: true,
             args: ["--quiet"],
         });
+
+        if (process.platform !== "darwin" && process.platform !== "win32") {
+            await setOpenAtLogin(); // linux needs a special implementation
+        }
     }
 });
 

@@ -76,3 +76,26 @@ export async function getPlatformPath() {
     const globPaths = await globCheck();
     return await getValidPath(globPaths);
 }
+
+// linux-only implementation to enable open at login
+export async function setOpenAtLogin() {
+    const dir = path.join(os.homedir(), ".config/autostart");
+    const file = path.join(dir, "bitwarden-auto-backup-manager.desktop");
+
+    try {
+        await fs.mkdir(dir, { recursive: true });
+
+        const content = `
+[Desktop Entry]
+Type=Application
+Name=Bitwarden Auto-Backup Manager
+Exec="${process.execPath}" --quiet
+Terminal=false
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+`.trim();
+
+        await fs.writeFile(file, content, { encoding: "utf8" });
+    } catch {};
+}
