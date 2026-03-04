@@ -15,7 +15,16 @@ async function exportVault(appData, uid = null) {
     const urls = userData?.[`user_${userId}_environment_environment`]?.urls || null;
 
     const refreshToken = await getCredential("Bitwarden", userId + "_refreshToken");
-    if (!refreshToken) throw new Error("Unable to retrieve refresh token for vault export from Bitwarden Desktop (are you logged in?).");
+    if (!refreshToken) {
+        const isSnap = appData.includes("snap/bitwarden") || appData.includes("snap\\bitwarden");
+        const isFlatpak = appData.includes(".var/app/com.bitwarden.desktop") || appData.includes(".var\\app\\com.bitwarden.desktop");
+
+        if (isSnap || isFlatpak) {
+            throw new Error(`Unable to retrieve refresh token for vault export. This is likely because your Bitwarden Desktop installation is a ${isSnap ? "Snap" : "Flatpak"} package, which may store credentials in an isolated keychain that cannot be accessed externally. It could also mean you are not logged into Bitwarden Desktop.\n\nIf this issue persists, please consider installing Bitwarden Desktop using a .deb or .rpm package, which can be found on bitwarden.com/download.`);
+        }
+
+        throw new Error("Unable to retrieve refresh token for vault export from Bitwarden Desktop (are you logged in?).");
+    }
 
     const accessToken = await getAccessToken(refreshToken, region, urls);
     if (!accessToken) throw new Error("Unable to authenticate vault export with refresh token from Bitwarden Desktop (are you logged in?).");
