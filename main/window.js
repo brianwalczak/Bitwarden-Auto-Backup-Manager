@@ -63,7 +63,10 @@ function prompt(config) {
 }
 
 async function createWindow(show = true) {
-    if (app.dock && !show) app.dock.hide();
+    if (app.dock) {
+        if (!show) app.dock.hide();
+        if (show) app.dock.show();
+    }
 
     win = new BrowserWindow({
         width: 750,
