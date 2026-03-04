@@ -6,7 +6,7 @@
         "name": "Brian Walczak",
         "email": "me@brian.re"
     },
-    "version": "2.2.2",
+    "version": "2.3.2",
     "main": "main/index.js",
     "type": "module",
     "scripts": {
