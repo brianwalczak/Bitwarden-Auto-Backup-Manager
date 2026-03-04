@@ -5,6 +5,7 @@ import { sanitizeString } from "../utils/utils.js";
 import { showWindow, createWindow } from "./window.js";
 import { backgroundBackupCheck } from "./backup.js";
 import { getPlatformPath } from "./platforms.js";
+import { checkPermissions } from "./permissions.js";
 import { globals } from "./shared.js";
 
 log.initialize();
@@ -36,6 +37,7 @@ if (!app.requestSingleInstanceLock()) {
     app.on("second-instance", showWindow); // Someone tried to run a second instance while this one is already open, focus the existing window
     app.whenReady().then(async () => {
         await checkRequirements();
+        await checkPermissions();
         
         if (process.argv.includes("--quiet")) {
             return createWindow(false);
