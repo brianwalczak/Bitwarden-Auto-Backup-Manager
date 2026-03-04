@@ -81,39 +81,45 @@ async function createWindow() {
         app.setAppUserModelId(app.name); // Set the app name for notifications
     }
 
-    // Top navigation menu buttons and functions
-    const menu = Menu.buildFromTemplate([
+    const aboutAction = () => {
+        dialog
+            .showMessageBox({
+                type: "info",
+                title: "Bitwarden Auto-Backup Manager",
+                message: `Software Details`,
+                detail: `Bitwarden Auto-Backup Manager v${app.getVersion()}\nDeveloped by Brian Walczak\nIf you find this software useful, please consider supporting its development.\n\n© ${new Date().getFullYear()} Brian Walczak`,
+                buttons: ["Support Me", "GitHub Repository", "OK"],
+                cancelId: 2,
+            })
+            .then((response) => {
+                switch (response.response) {
+                    case 0: // Support button clicked
+                        shell.openExternal("https://github.com/sponsors/brianwalczak");
+                        break;
+                    case 1: // Learn More button clicked
+                        shell.openExternal("https://github.com/BrianWalczak/Bitwarden-Auto-Backup-Manager");
+                        break;
+                    default:
+                        break;
+                }
+            })
+    };
+
+    const helpAction = () => {
+        shell.openExternal("https://github.com/BrianWalczak/Bitwarden-Auto-Backup-Manager");
+    };
+
+    let menu = Menu.buildFromTemplate([
         {
             label: "About",
             click() {
-                dialog
-                    .showMessageBox({
-                        type: "info",
-                        title: "Bitwarden Auto-Backup Manager",
-                        message: `Software Details`,
-                        detail: `Bitwarden Auto-Backup Manager v${app.getVersion()}\nDeveloped by Brian Walczak\nIf you find this software useful, please consider supporting its development.\n\n© ${new Date().getFullYear()} Brian Walczak`,
-                        buttons: ["Support Me", "GitHub Repository", "OK"],
-                        cancelId: 2,
-                    })
-                    .then((response) => {
-                        switch (response.response) {
-                            case 0: // Support button clicked
-                                shell.openExternal("https://ko-fi.com/brianwalczak");
-                                break;
-                            case 1: // Learn More button clicked
-                                shell.openExternal("https://github.com/BrianWalczak/Bitwarden-Auto-Backup-Manager");
-                                break;
-                            default:
-                                break;
-                        }
-                    })
-                    .catch(() => {});
+                aboutAction();
             },
         },
         {
             label: "Help",
             click() {
-                shell.openExternal("https://github.com/BrianWalczak/Bitwarden-Auto-Backup-Manager");
+                helpAction();
             },
         },
         {
@@ -129,6 +135,31 @@ async function createWindow() {
             },
         },
     ]);
+
+    if (process.platform === "darwin") {
+        menu = Menu.buildFromTemplate([
+            {
+                label: app.getName(),
+                submenu: [
+                    {
+                        label: "About " + app.getName(),
+                        click: aboutAction,
+                    },
+                    { type: "separator" },
+                    {
+                        label: "View on GitHub",
+                        click: helpAction,
+                    },
+                ],
+            },
+            { role: "fileMenu" },
+            { role: "editMenu" },
+            { role: "viewMenu" },
+            { role: "windowMenu" },
+            { role: "help" },
+        ]);
+    }
+
     Menu.setApplicationMenu(menu);
 
     win.on("close", (event) => {
