@@ -91,7 +91,7 @@ window.ipcRenderer.on("backups", (event, data) => {
     data.forEach((backup) => {
         const backupElement = $(`
 					<div class="result">
-						<small>Created At: <b>${new Date(backup.createdAt).toISOString().replace("T", " ").replace("Z", "").split(".")[0]}</b></small>
+						<small>Created At: <b>${new Date(backup.createdAt).toLocaleDateString()} at ${new Date(backup.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</b></small>
 						<small style="margin-top: 5px;">Location: ${backup.id}</small>
 						<small style="margin-top: 5px;">Size: ${backup.size} bytes</small>
 						<button class="secondary restore">Restore</button>

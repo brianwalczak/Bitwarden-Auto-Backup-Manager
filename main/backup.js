@@ -120,11 +120,11 @@ async function collectBackups(folder) {
         await fs.mkdir(folder, { recursive: true }); // Create requested directory if doesn't exist
         const fileList = await fs.readdir(folder, { withFileTypes: true });
         const folders = fileList.filter((file) => file.isDirectory() && file.name !== "Restored");
-        const oldFiles = fileList.filter((file) => file.isFile() && file.name.endsWith(".json")); // add support for old backups (v1.3.0 and below)
+        const oldFiles = fileList.filter((file) => file.isFile() && file.name.endsWith(".json") && !file.name.includes("decrypted_")); // add support for old backups (v1.3.0 and below)
 
         for (const dir of folders) {
             const dirPath = path.join(folder, dir.name);
-            const files = (await fs.readdir(dirPath, { withFileTypes: true })).filter((file) => file.isFile() && file.name.endsWith(".json"));
+            const files = (await fs.readdir(dirPath, { withFileTypes: true })).filter((file) => file.isFile() && file.name.endsWith(".json") && !file.name.includes("decrypted_"));
 
             for (const file of files) {
                 const filePath = path.join(dirPath, file.name);
