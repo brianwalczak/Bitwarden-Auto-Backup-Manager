@@ -38,6 +38,9 @@
                     ]
                 }
             ],
+            "extendInfo": {
+                "NSSystemAdministrationUsageDescription": "App needs full disk access to access your Bitwarden Desktop data."
+            },
             "category": "public.app-category.utilities"
         },
         "linux": {
