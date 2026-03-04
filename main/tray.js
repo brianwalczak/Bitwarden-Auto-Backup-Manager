@@ -59,14 +59,20 @@ async function updateTray(statusText = null) {
             label: "Settings",
             click: async () => {
                 const win = await showWindow();
-                win.webContents.send("tray_click", { action: "settings" });
+
+                win.webContents.once("did-finish-load", () => {
+                    win.webContents.send("tray_click", { action: "settings" });
+                });
             },
         },
         {
             label: "View Logs",
             click: async () => {
                 const win = await showWindow();
-                win.webContents.send("tray_click", { action: "backups" });
+                
+                win.webContents.once("did-finish-load", () => {
+                    win.webContents.send("tray_click", { action: "backups" });
+                });
             },
         },
         { type: "separator" },
