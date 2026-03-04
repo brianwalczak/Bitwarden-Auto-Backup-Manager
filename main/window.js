@@ -162,4 +162,4 @@ async function createWindow() {
     return win;
 }
 
-export { getWindow, showWindow, createWindow, prompt };
+export { getWindow, showWindow, prompt };

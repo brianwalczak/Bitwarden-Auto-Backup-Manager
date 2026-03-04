@@ -1,8 +1,8 @@
-import { app, BrowserWindow, dialog } from "electron";
+import { app, dialog } from "electron";
 import log from "electron-log/main.js";
 
 import { sanitizeString } from "../utils/utils.js";
-import { showWindow, createWindow } from "./window.js";
+import { showWindow } from "./window.js";
 import { backgroundBackupCheck } from "./backup.js";
 import { getPlatformPath } from "./platforms.js";
 import { globals } from "./shared.js";
@@ -36,7 +36,8 @@ if (!app.requestSingleInstanceLock()) {
     app.on("second-instance", showWindow); // Someone tried to run a second instance while this one is already open, focus the existing window
     app.whenReady().then(async () => {
         await checkRequirements();
-        createWindow();
+        
+        return showWindow();
     });
 }
 
@@ -74,12 +75,7 @@ app.on("ready", () => {
     }
 });
 
-// Create a window when the app is activated (if one doesn't exist)
-app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow();
-    }
-});
+app.on("activate", showWindow);
 
 // Run backup check every minute **at all times**
 // This can run like this, because whenever a user closes the software, it will always run in the background
