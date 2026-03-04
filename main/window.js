@@ -18,6 +18,7 @@ function getWindow() {
 
 async function showWindow() {
     if (!win) return await createWindow();
+    if (app.dock) app.dock.show();
 
     win.show();
     win.reload();
@@ -61,12 +62,14 @@ function prompt(config) {
     });
 }
 
-async function createWindow() {
+async function createWindow(show = true) {
+    if (app.dock && !show) app.dock.hide();
+
     win = new BrowserWindow({
         width: 750,
         height: 600,
         resizable: false,
-        show: !process.argv.includes("--quiet"),
+        show,
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -165,6 +168,8 @@ async function createWindow() {
     win.on("close", (event) => {
         if (!globals.isQuitting) {
             event.preventDefault();
+            if (app.dock) app.dock.hide();
+            
             win.destroy();
             win = null;
         }
@@ -193,4 +198,4 @@ async function createWindow() {
     return win;
 }
 
-export { getWindow, showWindow, prompt };
+export { getWindow, showWindow, createWindow, prompt };

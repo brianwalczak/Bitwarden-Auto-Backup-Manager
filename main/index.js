@@ -2,7 +2,7 @@ import { app, dialog } from "electron";
 import log from "electron-log/main.js";
 
 import { sanitizeString } from "../utils/utils.js";
-import { showWindow } from "./window.js";
+import { showWindow, createWindow } from "./window.js";
 import { backgroundBackupCheck } from "./backup.js";
 import { getPlatformPath } from "./platforms.js";
 import { globals } from "./shared.js";
@@ -37,7 +37,11 @@ if (!app.requestSingleInstanceLock()) {
     app.whenReady().then(async () => {
         await checkRequirements();
         
-        return showWindow();
+        if (process.argv.includes("--quiet")) {
+            return createWindow(false);
+        } else {
+            return createWindow(true);
+        }
     });
 }
 
