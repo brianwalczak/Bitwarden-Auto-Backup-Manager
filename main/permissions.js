@@ -27,6 +27,7 @@ async function checkPermissions() {
 
                 if (response.response === 0) {
                     macPerms.askForFullDiskAccess();
+                    process.exit(); // it just avoids confusion
                 }
             }
         } catch (error) {
