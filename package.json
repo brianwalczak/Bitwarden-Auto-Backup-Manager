@@ -72,6 +72,14 @@
             {
                 "from": "build/icon.png",
                 "to": "icon.png"
+            },
+            {
+                "from": "build/trayTemplate.png",
+                "to": "trayTemplate.png"
+            },
+            {
+                "from": "build/trayTemplate@2x.png",
+                "to": "trayTemplate@2x.png"
             }
         ]
     },
