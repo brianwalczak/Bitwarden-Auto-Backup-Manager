@@ -80,7 +80,9 @@ app.on("ready", () => {
     }
 });
 
-app.on("activate", showWindow);
+app.on("activate", () => {
+    showWindow(false); // don't reload, simply focus
+});
 
 // Run backup check every minute **at all times**
 // This can run like this, because whenever a user closes the software, it will always run in the background

@@ -16,12 +16,12 @@ function getWindow() {
     return win;
 }
 
-async function showWindow() {
+async function showWindow(reload = true) {
     if (!win) return await createWindow();
     if (app.dock) app.dock.show();
 
     win.show();
-    win.reload();
+    if (reload) win.reload();
     win.focus();
     return win;
 }
