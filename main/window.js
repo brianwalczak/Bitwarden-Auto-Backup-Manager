@@ -48,6 +48,7 @@ function prompt(config) {
 
         modal.webContents.once("did-finish-load", () => {
             modal.webContents.send("init", config);
+            modal.show();
         });
 
         const onceResponse = (_, data) => {
@@ -58,7 +59,6 @@ function prompt(config) {
         };
 
         ipcMain.once("response", onceResponse);
-        modal.once("ready-to-show", () => modal.show());
     });
 }
 
