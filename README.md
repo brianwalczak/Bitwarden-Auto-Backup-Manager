@@ -1,6 +1,6 @@
 <h1 align="center">Bitwarden Auto-Backup Manager</h1>
 
-<p align="center">A robust application that creates local, encrypted auto-backups for your Bitwarden vaults without using your master password.<br><br> <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPLv3-blue.svg"></a></p>
+<p align="center">A robust application that creates local, encrypted auto-backups for your Bitwarden vaults without using your master password.<br> 🎉 <strong>Now available on Windows, macOS, and Linux!</strong> 🎉 <br><br> <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPLv3-blue.svg"></a></p>
 
 <img src="https://raw.githubusercontent.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/refs/heads/gh-pages/home.png" height="250" /> <img src="https://raw.githubusercontent.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/refs/heads/gh-pages/backups.png" height="250" /> <img src="https://raw.githubusercontent.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/refs/heads/gh-pages/settings.png" height="250" />
 
@@ -14,7 +14,10 @@
 
 ## Requirements
 
-Before installing the Bitwarden Auto-Backup Manager, you need to have the Bitwarden Desktop app installed locally on your device. If you don't already, click <a href='https://vault.bitwarden.com/download/?app=desktop&platform=windows'>here</a> to download the latest installer for the Bitwarden Desktop app.
+Before installing the Bitwarden Auto-Backup Manager, you need to have the Bitwarden Desktop app installed locally on your device. If you don't already, click <a href='https://bitwarden.com/download/#downloads-desktop'>here</a> to download the latest installer for the Bitwarden Desktop app.
+
+> [!WARNING]
+> **Linux users:** Snap and Flatpak installations of Bitwarden Desktop store credentials in an isolated keychain that cannot be accessed externally. If you encounter issues retrieving your refresh token, please install Bitwarden Desktop using a `.deb` or `.rpm` package instead.
 
 Once you install the Bitwarden Desktop app, it's crucial that you login to your vault before you install the Bitwarden Auto-Backup Manager. This step is important, because it allows us to get the necessary information from the Bitwarden Desktop app to sync your vault directly through the Bitwarden API, all without the need of entering your master password.
 
@@ -23,7 +26,7 @@ Once you install the Bitwarden Desktop app, it's crucial that you login to your 
 
 ## Installation
 
-To install the Bitwarden Auto-Backup Manager, simply visit our <a href='https://github.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/releases'>releases page</a> and download the Windows executable. Then, launch the app and configure your settings to enable automatic backups on your device.
+To install the Bitwarden Auto-Backup Manager, simply visit our <a href='https://github.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/releases'>releases page</a> and download the installer for your platform (Windows, macOS, or Linux). Then, launch the app and configure your settings to enable automatic backups on your device.
 
 We communicate directly with the Bitwarden API to get the latest update of your encrypted Bitwarden vault and save it as a backup with your Bitwarden Desktop configurations (using the active account on the Bitwarden Desktop app).
 
