@@ -6,8 +6,8 @@
       "downloadUrl": "https://github.com/brianwalczak/Bitwarden-Auto-Backup-Manager/releases/download/v1.3.0/Bitwarden_Auto-Backup_Manager_v1.3.0.exe"
     },
     "2": {
-      "latest": "2.2.2",
-      "downloadUrl": "https://github.com/brianwalczak/Bitwarden-Auto-Backup-Manager/releases/download/v2.2.2/Bitwarden_Auto-Backup_Manager_v2.2.2.exe"
+      "latest": "2.3.2",
+      "downloadUrl": "https://github.com/brianwalczak/Bitwarden-Auto-Backup-Manager/releases/download/v2.3.2/Bitwarden_Auto-Backup_Manager_v2.3.2.exe"
     }
   },
   "updatePolicies": [
