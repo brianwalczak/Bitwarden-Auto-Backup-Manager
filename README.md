@@ -2,7 +2,7 @@
 
 <p align="center">Automatic, encrypted local backups for your Bitwarden vaults - without your master password.<br> 🎉 <strong>Available on Windows, macOS, and Linux!</strong> 🎉 <br><br> <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPLv3-blue.svg"></a></p>
 
-<img src="https://raw.githubusercontent.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/refs/heads/gh-pages/home.png" height="250" /> <img src="https://raw.githubusercontent.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/refs/heads/gh-pages/backups.png" height="250" /> <img src="https://raw.githubusercontent.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/refs/heads/gh-pages/settings.png" height="250" />
+<img src="https://raw.githubusercontent.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/refs/heads/gh-pages/home.png" height="300" /> <img src="https://raw.githubusercontent.com/BrianWalczak/Bitwarden-Auto-Backup-Manager/refs/heads/gh-pages/backups.png" height="300" />
 
 ## Features
 
