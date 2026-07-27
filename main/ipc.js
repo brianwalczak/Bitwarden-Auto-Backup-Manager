@@ -6,6 +6,7 @@ import { restoreHandler } from "./restore.js";
 import { performBackup } from "./backup.js";
 import { getActiveUsers } from "./users.js";
 import { getWindow } from "./window.js";
+import { getLocalRefreshToken, getDesktopRefreshToken, setLocalRefreshToken } from "../utils/credentials.js";
 
 let injected = false;
 
@@ -69,6 +70,18 @@ async function injectIpcHandlers() {
                 nextDate: Date.now(),
             });
             isUser.active = true;
+
+            // preload the refresh token now while the user is still here so they can respond to the keychain prompt (macOS users)
+            try {
+                const localToken = await getLocalRefreshToken(user.uid);
+
+                if (!localToken) {
+                    const bitwardenToken = await getDesktopRefreshToken(user.uid);
+                    if (bitwardenToken) await setLocalRefreshToken(user.uid, bitwardenToken);
+                }
+            } catch (error) {
+                log.warn(`[Main Process] Could not preload refresh token for user ${user.uid || "unknown"}!`);
+            }
         }
 
         const update = await updateSettings(settings);

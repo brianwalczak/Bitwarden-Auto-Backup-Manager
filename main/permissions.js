@@ -1,13 +1,7 @@
-import keytar from "keytar";
 import { dialog } from "electron";
 import log from "electron-log/main.js";
 
 async function checkPermissions() {
-    // nudge users to grant keychain permission, this will also give mac users a chance to click "Always Allow" (hopefully they do lol)
-    try {
-        await keytar.findCredentials("Bitwarden");
-    } catch { };
-
     if (process.platform === "darwin") {
         // check for Full Disk Access permission on macOS (for any other OS, we already attempt file reading in platforms.js)
         try {
@@ -30,7 +24,7 @@ async function checkPermissions() {
                     process.exit(); // it just avoids confusion
                 }
             }
-        } catch (error) {
+        } catch {
             log.warn("[Main Process] node-mac-permissions not available, skipping Full Disk Access permission check!!");
         }
     }

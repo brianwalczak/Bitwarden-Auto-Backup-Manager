@@ -13,5 +13,8 @@ export default [
                 log: "readonly",
             },
         },
+        rules: {
+            "no-empty": ["error", { allowEmptyCatch: true }],
+        },
     },
 ];
