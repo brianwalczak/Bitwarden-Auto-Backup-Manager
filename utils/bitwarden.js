@@ -2,7 +2,7 @@ import { SyncResponse, IdentityTokenResponse, PreloginResponse } from "../libs/c
 import { joinUrl } from "./utils.js";
 
 // Creates an API request to Bitwarden creating an access token
-async function getAccessToken(refresh_token, region, urls = null) {
+async function getAuthToken(refresh_token, region, urls = null) {
     if (!refresh_token) throw new Error("Bitwarden API: Refresh token is required to get access token (are you logged in?).");
 
     let domain = null;
@@ -34,13 +34,21 @@ async function getAccessToken(refresh_token, region, urls = null) {
 
     if (!req.ok) {
         const text = await req.text();
-        throw new Error(`Bitwarden API: Failed to get access token (are you logged in?). Status: ${req.status}, Response: ${text}`);
+        const error = new Error(`Bitwarden API: Failed to get access token (are you logged in?). Status: ${req.status}, Response: ${text}`);
+
+        // flag if error was related to an invalid refresh token
+        if (req.status === 400 && text.includes("invalid_grant")) {
+            error.invalidGrant = true;
+        }
+
+        throw error;
     }
 
     const res = await req.json();
     const tokenResponse = new IdentityTokenResponse(res);
 
-    return tokenResponse.accessToken;
+    // the identity server returns a refresh_token on every response, so we should return and store it
+    return { accessToken: tokenResponse.accessToken, refreshToken: tokenResponse.refreshToken ?? null };
 }
 
 // Creates an API request to Bitwarden to sync your vault
@@ -114,4 +122,4 @@ async function getIterations(email, region, urls = null) {
     return preloginResponse.kdfIterations;
 }
 
-export { getAccessToken, syncVault, getIterations };
+export { getAuthToken, syncVault, getIterations };

@@ -1,20 +1,14 @@
 import { getCredential } from "../credentials.js";
-import { getAccessToken, syncVault, getIterations } from "../bitwarden.js";
+import { getAuthToken, syncVault, getIterations } from "../bitwarden.js";
+import { getLocalRefreshToken, setLocalRefreshToken, deleteLocalRefreshToken } from "../tokenStore.js";
 import { readFile } from "../utils.js";
 
 import { Cipher, CipherData, CipherWithIdExport, Folder, FolderData, FolderWithIdExport } from "../../libs/common.cjs";
 
-async function exportVault(appData, uid = null) {
-    const userData = await readFile(appData);
-    if (!userData) throw new Error("Unable to read user data from " + appData + " (Bitwarden Desktop). File may not exist or has insufficient permissions.");
-
-    const userId = uid ?? userData.global_account_activeAccountId;
-    if (!userId) throw new Error("A user was not specified for vault export, and no default account is selected in Bitwarden Desktop.");
-
-    const region = userData?.[`user_${userId}_environment_environment`]?.region?.trim() || "US";
-    const urls = userData?.[`user_${userId}_environment_environment`]?.urls || null;
-
+// Get user refresh token from Bitwarden Desktop's credential store
+async function readDesktopRefreshToken(appData, userId) {
     const refreshToken = await getCredential("Bitwarden", userId + "_refreshToken");
+
     if (!refreshToken) {
         const isSnap = appData.includes("snap/bitwarden") || appData.includes("snap\\bitwarden");
         const isFlatpak = appData.includes(".var/app/com.bitwarden.desktop") || appData.includes(".var\\app\\com.bitwarden.desktop");
@@ -26,7 +20,45 @@ async function exportVault(appData, uid = null) {
         throw new Error("Unable to retrieve refresh token for vault export from Bitwarden Desktop (are you logged in?).");
     }
 
-    const accessToken = await getAccessToken(refreshToken, region, urls);
+    return refreshToken;
+}
+
+// Obtain an access token by first checking our own credential store, then falling back to Bitwarden Desktop
+async function getAccessToken({ appData, userId }, region, urls) {
+    // attempt reading from our credential store first
+    const localToken = await getLocalRefreshToken(userId);
+
+    if (localToken) {
+        try {
+            const { accessToken, refreshToken } = await getAuthToken(localToken, region, urls);
+            
+            await setLocalRefreshToken(userId, refreshToken ?? localToken); // store latest refresh token (if present)
+            return accessToken;
+        } catch (error) {
+            if (!error.invalidGrant) throw error;
+            await deleteLocalRefreshToken(userId); // token is dead, remove it from keychain
+        }
+    }
+
+    // fall back to Bitwarden Desktop's credential store entry, then save the token
+    const bitwardenToken = await readDesktopRefreshToken(appData, userId);
+    const { accessToken, refreshToken } = await getAuthToken(bitwardenToken, region, urls);
+
+    await setLocalRefreshToken(userId, refreshToken ?? bitwardenToken);
+    return accessToken;
+}
+
+async function exportVault(appData, uid = null) {
+    const userData = await readFile(appData);
+    if (!userData) throw new Error("Unable to read user data from " + appData + " (Bitwarden Desktop). File may not exist or has insufficient permissions.");
+
+    const userId = uid ?? userData.global_account_activeAccountId;
+    if (!userId) throw new Error("A user was not specified for vault export, and no default account is selected in Bitwarden Desktop.");
+
+    const region = userData?.[`user_${userId}_environment_environment`]?.region?.trim() || "US";
+    const urls = userData?.[`user_${userId}_environment_environment`]?.urls || null;
+
+    const accessToken = await getAccessToken({ appData, userId }, region, urls);
     if (!accessToken) throw new Error("Unable to authenticate vault export with refresh token from Bitwarden Desktop (are you logged in?).");
 
     const vault = await syncVault(accessToken, region, urls);
