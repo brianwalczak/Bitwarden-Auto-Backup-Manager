@@ -45,7 +45,7 @@ jobs:
                     --bundle \
                     --platform=node \
                     --format=cjs \
-                    --packages=external \
+                    --external:@bitwarden/sdk-internal \
                     --minify \
                     --outfile=../common.cjs
 

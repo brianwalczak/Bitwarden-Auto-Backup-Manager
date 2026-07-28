@@ -1,4 +1,4 @@
-import { SyncResponse, IdentityTokenResponse, PreloginResponse } from "../libs/common.cjs";
+import { SyncResponse, RefreshTokenResponse, PasswordPreloginResponse } from "../libs/common.cjs";
 import { joinUrl } from "./utils.js";
 
 // Creates an API request to Bitwarden creating an access token
@@ -45,7 +45,7 @@ async function getAuthToken(refresh_token, region, urls = null) {
     }
 
     const res = await req.json();
-    const tokenResponse = new IdentityTokenResponse(res);
+    const tokenResponse = new RefreshTokenResponse(res);
 
     // the identity server returns a refresh_token on every response, so we should return and store it
     return { accessToken: tokenResponse.accessToken, refreshToken: tokenResponse.refreshToken ?? null };
@@ -94,15 +94,15 @@ async function getIterations(email, region, urls = null) {
     let domain = null;
     if (urls?.base) {
         if (urls?.identity) {
-            domain = joinUrl(urls.identity, "/accounts/prelogin");
+            domain = joinUrl(urls.identity, "/accounts/prelogin/password");
         } else {
-            domain = joinUrl(urls.base, "/identity" + "/accounts/prelogin");
+            domain = joinUrl(urls.base, "/identity" + "/accounts/prelogin/password");
         }
     } else if (region === "EU") {
-        domain = "https://identity.bitwarden.eu/accounts/prelogin";
+        domain = "https://identity.bitwarden.eu/accounts/prelogin/password";
     } else {
         // default to US server
-        domain = "https://identity.bitwarden.com/accounts/prelogin";
+        domain = "https://identity.bitwarden.com/accounts/prelogin/password";
     }
 
     const req = await fetch(domain, {
@@ -116,7 +116,7 @@ async function getIterations(email, region, urls = null) {
     });
 
     const res = await req.json();
-    const preloginResponse = new PreloginResponse(res);
+    const preloginResponse = new PasswordPreloginResponse(res);
 
     if (preloginResponse.kdf === undefined || preloginResponse.kdfIterations === undefined || preloginResponse.kdf !== 0) return null;
     return preloginResponse.kdfIterations;

@@ -60,7 +60,7 @@ async function exportVault(appData, uid = null) {
     if (!vault.profile.email) throw new Error("Unable to fetch profile email from vault sync (are you logged in?).");
     if (!vault.profile.key) throw new Error("Unable to fetch profile key from vault sync (are you logged in?).");
 
-    // https://github.com/bitwarden/clients/blob/eab6e7ce804fa1c3c5c30f47f6f6165e109d7ee8/libs/tools/export/vault-export/vault-export-core/src/services/individual-vault-export.service.ts#L203
+    // Cipher/Folder constructors require CipherData/FolderData instances, so wrap the raw JSON first
     let ciphersData = {};
     let foldersData = {};
 
@@ -78,8 +78,7 @@ async function exportVault(appData, uid = null) {
         foldersData[data.id] = data;
     });
 
-    // ----- Actual Code ----- //
-
+    // https://github.com/bitwarden/clients/blob/3cfc9d8e8a7f544abb7db973e65042d724c6ef73/libs/tools/export-vault-core/src/services/individual-vault-export.service.ts#L237
     let folders = [];
     let ciphers = [];
 

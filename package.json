@@ -84,13 +84,10 @@
         ]
     },
     "dependencies": {
-        "@bitwarden/sdk-internal": "0.2.0-main.546",
-        "big-integer": "1.6.52",
+        "@bitwarden/sdk-internal": "0.2.0-main.919",
         "compare-versions": "^6.1.1",
         "electron-log": "^5.4.3",
-        "keytar": "^7.9.0",
-        "rxjs": "7.8.1",
-        "tldts": "7.0.22"
+        "keytar": "^7.9.0"
     },
     "devDependencies": {
         "@electron-toolkit/eslint-config": "^2.1.0",

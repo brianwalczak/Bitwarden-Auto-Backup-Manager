@@ -9,5 +9,5 @@ export { SymmetricCryptoKey } from "./libs/common/src/platform/models/domain/sym
 export { EncString } from "./libs/common/src/key-management/crypto/models/enc-string";
 
 export { SyncResponse } from "./libs/common/src/platform/sync/sync.response";
-export { IdentityTokenResponse } from "./libs/common/src/auth/models/response/identity-token.response";
-export { PreloginResponse } from "./libs/common/src/auth/models/response/prelogin.response";
+export { RefreshTokenResponse } from "./libs/common/src/auth/models/response/refresh-token.response";
+export { PasswordPreloginResponse } from "./libs/common/src/auth/password-prelogin/password-prelogin.response";

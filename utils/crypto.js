@@ -1,4 +1,4 @@
-// https://github.com/bitwarden/clients/blob/14a4359c873445d3641d34dbb31ce71d24d7e785/libs/common/src/key-management/crypto/services/encrypt.service.implementation.ts
+// https://github.com/bitwarden/clients/blob/7ccf1263a0da002841115d3854a51cd0d37ced0c/libs/common/src/key-management/crypto/services/encrypt.service.implementation.ts
 import crypto from "node:crypto";
 
 // Reference to encryption types used (helps identify encryption type from b64)
